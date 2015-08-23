@@ -18,6 +18,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -32,6 +33,7 @@ import eu.raxsix.popularmovies.MainActivity;
 import eu.raxsix.popularmovies.R;
 import eu.raxsix.popularmovies.adapters.MovieAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
+import eu.raxsix.popularmovies.network.VolleySingleton;
 import eu.raxsix.popularmovies.pojo.Movie;
 
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_RESULTS;
@@ -49,7 +51,6 @@ public class PosterFragment extends Fragment {
     private static final String BASE_REQUEST_URL = "http://api.themoviedb.org/3/discover/movie?";
     private static final String POPULAR_MOVIES = "/discover/movie?sort_by=popularity.desc&api_key=";
 
-
     private List<Movie> mMovieList;
     private RecyclerView mRecyclerView;
 
@@ -62,6 +63,7 @@ public class PosterFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -72,7 +74,7 @@ public class PosterFragment extends Fragment {
         mMovieList = new ArrayList<>();
 
         // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(getActivity());
+        RequestQueue requestQueue = VolleySingleton.getsInstance().getRequestQueue();
 
         // Creating url
         String url = BASE_REQUEST_URL + POPULAR_MOVIES + ApiKey.API_KEY;
@@ -97,7 +99,7 @@ public class PosterFragment extends Fragment {
         });
 
         // Add the request to the RequestQueue.
-        queue.add(jsObjRequest);
+        requestQueue.add(jsObjRequest);
 
         MovieAdapter adapter = new MovieAdapter(getActivity(), mMovieList);
         mRecyclerView.setAdapter(adapter);

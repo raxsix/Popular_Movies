@@ -7,11 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
 import eu.raxsix.popularmovies.R;
+import eu.raxsix.popularmovies.network.VolleySingleton;
 import eu.raxsix.popularmovies.pojo.Movie;
 
 /**
@@ -26,11 +29,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     private LayoutInflater inflater;
     private Context context;
 
+    private VolleySingleton mVolleySingleton;
+    private ImageLoader mImageLoader;
+
+
 
     public MovieAdapter(Context context, List<Movie> movies) {
         this.movies = movies;
         this.inflater = LayoutInflater.from(context);
         this.context = context;
+
+        mVolleySingleton = VolleySingleton.getsInstance();
+        mImageLoader = mVolleySingleton.getImageLoader();
     }
 
     @Override
@@ -43,10 +53,22 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
 
         Movie current = movies.get(position);
-        Picasso.with(context).load(BASE_URL + IMAGE_SIZE + current.getPosterImagePath()).noFade().into(holder.posterImage);
+
+        mImageLoader.get(BASE_URL + IMAGE_SIZE + current.getPosterImagePath(), new ImageLoader.ImageListener() {
+            @Override
+            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+
+                holder.posterImage.setImageBitmap(response.getBitmap());
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
     }
 
     @Override
