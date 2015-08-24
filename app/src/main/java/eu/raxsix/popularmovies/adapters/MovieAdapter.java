@@ -1,6 +1,8 @@
 package eu.raxsix.popularmovies.adapters;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,11 +11,12 @@ import android.widget.ImageView;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import eu.raxsix.popularmovies.MovieDetailActivity;
 import eu.raxsix.popularmovies.R;
+import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 import eu.raxsix.popularmovies.pojo.Movie;
 
@@ -31,7 +34,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
 
     private VolleySingleton mVolleySingleton;
     private ImageLoader mImageLoader;
-
 
 
     public MovieAdapter(Context context, List<Movie> movies) {
@@ -57,18 +59,21 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
 
         Movie current = movies.get(position);
 
-        mImageLoader.get(BASE_URL + IMAGE_SIZE + current.getPosterImagePath(), new ImageLoader.ImageListener() {
-            @Override
-            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+        if (!current.getPosterImagePath().equals(Constants.NA)) {
 
-                holder.posterImage.setImageBitmap(response.getBitmap());
-            }
+            mImageLoader.get(BASE_URL + IMAGE_SIZE + current.getPosterImagePath(), new ImageLoader.ImageListener() {
+                @Override
+                public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
 
-            @Override
-            public void onErrorResponse(VolleyError error) {
+                    holder.posterImage.setImageBitmap(response.getBitmap());
+                }
 
-            }
-        });
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            });
+        }
     }
 
     @Override
@@ -76,7 +81,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         return movies.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public  class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public ImageView posterImage;
 
@@ -84,6 +89,16 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             super(itemView);
 
             posterImage = (ImageView) itemView.findViewById(R.id.posterImageView);
+
+            posterImage.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            Intent intent = new Intent(context, MovieDetailActivity.class);
+            context.startActivity(intent);
+
         }
     }
 }

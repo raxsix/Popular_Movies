@@ -5,10 +5,11 @@ package eu.raxsix.popularmovies.extras;
  */
 public interface JsonKeys {
 
+    String KEY_ID = "id";
     String KEY_RESULTS = "results";
-    String POSTER_PATH = "poster_path";
-    String ORIGINAL_TITLE = "original_title";
-    String OVERVIEW = "overview";
-    String VOTE_AVARAGE = "vote_average";
-    String RELEASE_DATE = "release_date";
+    String KEY_POSTER_PATH = "poster_path";
+    String KEY_ORIGINAL_TITLE = "original_title";
+    String KEY_OVERVIEW = "overview";
+    String KEY_VOTE_AVARAGE = "vote_average";
+    String KEY_RELEASE_DATE = "release_date";
 }

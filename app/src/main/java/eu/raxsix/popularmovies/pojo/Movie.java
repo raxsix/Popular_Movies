@@ -5,22 +5,30 @@ package eu.raxsix.popularmovies.pojo;
  */
 public class Movie {
 
+    private long id;
     private String title;
     private String posterImagePath;
     private String overview;
     private double rating;
     private String releaseDate;
 
-    public String getPosterImagePath() {
-        return posterImagePath;
-    }
 
-    public Movie(String title, String posterImagePath, String overview, double rating, String releaseDate) {
+    public Movie(long id, String title, String posterImagePath, String overview, double rating, String releaseDate) {
+
+        this.id = id;
         this.title = title;
         this.posterImagePath = posterImagePath;
         this.overview = overview;
         this.rating = rating;
         this.releaseDate = releaseDate;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -35,6 +43,10 @@ public class Movie {
         this.posterImagePath = posterImagePath;
     }
 
+    public String getPosterImagePath(){
+        return posterImagePath;
+    }
+
     public String getOverview() {
         return overview;
     }
@@ -47,7 +59,7 @@ public class Movie {
         return rating;
     }
 
-    public void setRating(float rating) {
+    public void setRating(double rating) {
         this.rating = rating;
     }
 

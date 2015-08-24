@@ -8,4 +8,6 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="sort_by_popular">Sort by popular</string>
     <string name="title_activity_movie_detail">MovieDetailActivity</string>
+    <string name="loading">Loading...</string>
+    <string name="error_timeout">Connection could not established</string>
 </resources>
