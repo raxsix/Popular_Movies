@@ -41,11 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.posterContainer, mPosterFragment, "poster")
                     .commit();
-        } else {
-            Log.d("test", "retain");
-            mPosterFragment = getSupportFragmentManager().findFragmentByTag("poster");
         }
-
         createFloatingActionButton();
 
     }

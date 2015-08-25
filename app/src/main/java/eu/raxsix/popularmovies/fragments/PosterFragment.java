@@ -3,6 +3,7 @@ package eu.raxsix.popularmovies.fragments;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -83,7 +84,6 @@ public class PosterFragment extends Fragment implements SortListener {
         Log.d("test", "PosterFragment onCreate");
         setHasOptionsMenu(true);
 
-        setRetainInstance(true);
     }
 
     @Override
@@ -270,13 +270,13 @@ public class PosterFragment extends Fragment implements SortListener {
 
                         if (movie.has(KEY_ID) && !movie.isNull(KEY_ID)) {
 
-                            Log.d("test", "has key ID");
+
                             id = movie.getLong(KEY_ID);
                         }
 
                         if (movie.has(KEY_POSTER_PATH) && !movie.isNull(KEY_POSTER_PATH)) {
 
-                            Log.d("test", "has key path");
+
                             posterPath = movie.getString(KEY_POSTER_PATH);
                         }
 
@@ -306,14 +306,14 @@ public class PosterFragment extends Fragment implements SortListener {
                         if (id != -1 && !title.equals(Constants.NA)) {
 
                             if (mJsObjRequest.getTag().equals("popular")) {
-                                Log.d("test", "mJsObjRequest tag equals popular");
+
 
                                 mMovieList.add(new Movie(id, title, posterPath, overview, average, release));
 
                             }
                             if (mJsObjRequest.getTag().equals("rated")) {
 
-                                Log.d("test", "mJsObjRequest tag equals rated");
+
                                 mTopRatedMovieList.add(new Movie(id, title, posterPath, overview, average, release));
                             }
                         }
@@ -368,12 +368,12 @@ public class PosterFragment extends Fragment implements SortListener {
 
         if (mTopRatedMovieList != null && !mTopRatedMovieList.isEmpty() && mTopRatedMovieList.size() > 0) {
 
-            Log.d("test", "mTopRatedMovieList not empty and not null");
+            Log.d("test", "onSortByRating second time no network call");
             mRecyclerView.setAdapter(mTopRatedAdapter);
 
         } else {
 
-            Log.d("test", "onSortByRating");
+            Log.d("test", "onSortByRating first time network call");
             // Creating url
             String url = BASE_REQUEST_URL + MOST_RATED_MOVIES + ApiKey.API_KEY;
             Log.d("test", "onSortByRating url: " + url);
@@ -417,5 +417,20 @@ public class PosterFragment extends Fragment implements SortListener {
         }
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
 
+
+        Log.d("LC", "Fragment onConfigurationChanged");
+       if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+
+
+           mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+       }else{
+
+           mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+       }
+
+    }
 }
