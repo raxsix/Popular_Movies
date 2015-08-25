@@ -1,8 +1,10 @@
 package eu.raxsix.popularmovies;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,19 +23,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG_SORT_RATING = "sortRating";
 
 
+    private Fragment mPosterFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.e("LC", "Activity onCreate");
+
+        Log.d("test", "MainActivity onCreate");
+
 
         if (savedInstanceState == null) {
+            Log.d("test", "saveinstanceState is null");
+            mPosterFragment = new PosterFragment();
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.posterContainer, new PosterFragment(), "poster")
+                    .add(R.id.posterContainer, mPosterFragment, "poster")
                     .commit();
+        } else {
+            Log.d("test", "retain");
+            mPosterFragment = getSupportFragmentManager().findFragmentByTag("poster");
         }
 
         createFloatingActionButton();
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i("LC", "Activity onStop");
 
     }
 
@@ -117,5 +137,82 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void setActionBarTitle(String title) {
         getSupportActionBar().setTitle(title);
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        Log.i("LC", "Activity onDestroy");
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        Log.i("LC", "Activity onConfigurationChanged");
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Log.i("LC", "Activity onBackPressed");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Log.i("LC", "Activity onPause");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.i("LC", "Activity onResume");
+    }
+
+    @Override
+    protected void onResumeFragments() {
+        super.onResumeFragments();
+
+        Log.i("LC", "Activity onResumeFragments");
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.i("LC", "Activity onSaveInstanceState");
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Log.i("LC", "Activity onStart");
+    }
+
+    @Override
+    public void onAttachFragment(Fragment fragment) {
+        super.onAttachFragment(fragment);
+
+        Log.i("LC", "Activity onAttachFragment");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        Log.i("LC", "Activity onRestart");
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        Log.i("LC", "Activity onRestoreInstanceState");
     }
 }

@@ -1,16 +1,30 @@
 package eu.raxsix.popularmovies;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 public class MovieDetailActivity extends AppCompatActivity {
+
+
+    private TextView mTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_detail);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        Intent intent = getIntent();
+
+        mTitle = (TextView) findViewById(R.id.titleTextView);
+
+        mTitle.setText(intent.getStringExtra("title"));
+
     }
 
 
@@ -33,6 +47,12 @@ public class MovieDetailActivity extends AppCompatActivity {
             return true;
         }
 
+        if (id == android.R.id.home) {
+            onBackPressed();
+        }
+
         return super.onOptionsItemSelected(item);
     }
+
+
 }

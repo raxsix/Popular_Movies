@@ -1,6 +1,7 @@
 package eu.raxsix.popularmovies.fragments;
 
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -78,79 +79,140 @@ public class PosterFragment extends Fragment implements SortListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.e("LC", "Fragment onCreate");
+        Log.d("test", "PosterFragment onCreate");
         setHasOptionsMenu(true);
 
+        setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        Log.d("LC","Fragment onCreateView");
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_poster, container, false);
 
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Log.d("LC", "Fragment onResume");
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        Log.d("LC", "Fragment onStart");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        Log.d("LC", "Fragment onPause");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        Log.d("LC", "Fragment onStop");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        Log.d("LC", "Fragment onDestroy");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+        Log.d("test", "Fragment onDetach");
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        Log.d("LC", "Fragment onAttach");
+
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        Log.d("LC", "Fragment onViewCreated");
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        Log.d("LC", "Fragment onActivityCreated");
 
-        mDialog = new ProgressDialog(getActivity());
-        mDialog.setMessage(getString(R.string.loading));
+            mDialog = new ProgressDialog(getActivity());
+            mDialog.setMessage(getString(R.string.loading));
 
-        mErrorView = (TextView) getActivity().findViewById(R.id.errorView);
-        mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.recyclerView);
-        mMovieList = new ArrayList<>();
-        mTopRatedMovieList = new ArrayList<>();
+            mErrorView = (TextView) getActivity().findViewById(R.id.errorView);
+            mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.recyclerView);
+            mMovieList = new ArrayList<>();
+            mTopRatedMovieList = new ArrayList<>();
 
-        mDialog.show();
-        // Instantiate the RequestQueue.
-        mRequestQueue = VolleySingleton.getsInstance().getRequestQueue();
+            mDialog.show();
 
-        // Creating url
-        String url = BASE_REQUEST_URL + POPULAR_MOVIES + ApiKey.API_KEY;
+            // Instantiate the RequestQueue.
+            mRequestQueue = VolleySingleton.getsInstance().getRequestQueue();
 
-        Log.d("Test", url);
+            // Creating url
+            String url = BASE_REQUEST_URL + POPULAR_MOVIES + ApiKey.API_KEY;
 
-        mJsObjRequest = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
+            Log.d("Test", url);
 
-                mErrorView.setVisibility(View.GONE);
-                mJsObjRequest.setTag("popular");
+            mJsObjRequest = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
 
-                Log.d("test", "popular tag has been set");
+                    mErrorView.setVisibility(View.GONE);
+                    mJsObjRequest.setTag("popular");
 
-                parseJSONResponse(response);
+                    Log.d("test", "popular tag has been set");
 
-                mDialog.hide();
+                    parseJSONResponse(response);
 
-                movieAdapter = new MovieAdapter(getActivity(), mMovieList);
-                mRecyclerView.setAdapter(movieAdapter);
+                    mDialog.hide();
 
-                // Enable optimizations if all item views are of the same height and width for significantly smoother scrolling:
-                mRecyclerView.setHasFixedSize(true);
+                    movieAdapter = new MovieAdapter(getActivity(), mMovieList);
+                    mRecyclerView.setAdapter(movieAdapter);
 
-                mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+                    // Enable optimizations if all item views are of the same height and width for significantly smoother scrolling:
+                    mRecyclerView.setHasFixedSize(true);
 
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
 
-                handleVolleyError(error);
+                    mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
-                mDialog.hide();
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
 
-            }
-        });
+                    handleVolleyError(error);
 
-        // Add the request to the RequestQueue.
-        mRequestQueue.add(mJsObjRequest);
+                    mDialog.hide();
 
+                }
+            });
+
+            // Add the request to the RequestQueue.
+            mRequestQueue.add(mJsObjRequest);
 
     }
 
@@ -353,7 +415,7 @@ public class PosterFragment extends Fragment implements SortListener {
 
 
         }
-
-
     }
+
+
 }

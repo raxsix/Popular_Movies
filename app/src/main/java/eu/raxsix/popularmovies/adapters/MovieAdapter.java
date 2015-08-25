@@ -1,8 +1,8 @@
 package eu.raxsix.popularmovies.adapters;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -68,12 +68,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
                     holder.posterImage.setImageBitmap(response.getBitmap());
                 }
 
+
                 @Override
                 public void onErrorResponse(VolleyError error) {
 
                 }
             });
         }
+
     }
 
     @Override
@@ -81,7 +83,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         return movies.size();
     }
 
-    public  class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public ImageView posterImage;
 
@@ -96,7 +98,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         @Override
         public void onClick(View v) {
 
+            int position = getLayoutPosition(); // gets item position
+            Movie movie = movies.get(position);
+
+            Fragment fragment = new Fragment();
+
+
             Intent intent = new Intent(context, MovieDetailActivity.class);
+            intent.putExtra("title", movie.getTitle());
+            intent.putExtra("path", movie.getPosterImagePath());
+            intent.putExtra("overview", movie.getOverview());
+            intent.putExtra("rating", movie.getRating());
+            intent.putExtra("date", movie.getReleaseDate());
             context.startActivity(intent);
 
         }
