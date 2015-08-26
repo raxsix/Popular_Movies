@@ -1,12 +1,8 @@
 package eu.raxsix.popularmovies;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -14,14 +10,18 @@ import com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
 import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
 
+import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.fragments.PosterFragment;
 
-
+/**
+ * NB! First thing you have to do is but your movies API key to
+ * @see eu.raxsix.popularmovies.api_key.ApiKey
+ *
+ * Using Volley instead Piccasso library
+ *
+ * The highest rated movie url does not work for me I used Kids movies for alternative
+ */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
-    private static final String TAG_SORT_POPULAR = "sortPopular";
-    private static final String TAG_SORT_RATING = "sortRating";
-
 
     private Fragment mPosterFragment;
 
@@ -30,51 +30,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.e("LC", "Activity onCreate");
-
-        Log.d("test", "MainActivity onCreate");
-
-
         if (savedInstanceState == null) {
-            Log.d("test", "saveinstanceState is null");
+
             mPosterFragment = new PosterFragment();
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.posterContainer, mPosterFragment, "poster")
                     .commit();
         }
+
+        // Call to build up the floating action button
         createFloatingActionButton();
-
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.i("LC", "Activity onStop");
-
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
+    /**
+     * Custom method for creating the floating action button for sorting
+     * Using CircularFloatingActionMenu framework
+     */
     private void createFloatingActionButton() {
 
         // Creating icon view for floating action button
@@ -88,18 +59,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Building subIcons for floating action button
         SubActionButton.Builder itemBuilder = new SubActionButton.Builder(this);
 
+        // Building up popular movies list button
         ImageView popularImage = new ImageView(this);
         popularImage.setImageResource(R.drawable.ic_stars_black_24dp);
         SubActionButton popular_sort = itemBuilder.setContentView(popularImage).build();
-        popular_sort.setTag(TAG_SORT_POPULAR);
+        // Setting tag for this button to help manage click event
+        popular_sort.setTag(Constants.TAG_SORT_POPULAR);
         popular_sort.setOnClickListener(this);
 
+        // Building up kids movies button
         ImageView ratedImage = new ImageView(this);
         ratedImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
         SubActionButton rated_sort = itemBuilder.setContentView(ratedImage).build();
-        rated_sort.setTag(TAG_SORT_RATING);
+        // Setting tag for this button to help manage click event
+        rated_sort.setTag(Constants.TAG_SORT_RATING);
         rated_sort.setOnClickListener(this);
 
+        // Putting the menu together
         FloatingActionMenu actionMenu = new FloatingActionMenu.Builder(this)
                 .setRadius(200)
                 .setStartAngle(180)
@@ -111,19 +87,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    /**
+     * Handling floating button click events
+     */
     @Override
     public void onClick(View v) {
 
+        // Getting the Poster fragment reference
         PosterFragment fragment = (PosterFragment) getSupportFragmentManager().findFragmentByTag("poster");
 
-        if (v.getTag().equals(TAG_SORT_POPULAR)) {
 
+        if (v.getTag().equals(Constants.TAG_SORT_POPULAR)) {
+
+            // PosterFragment implements custom interface SortListener so we get access to the onSortByPopular();
             fragment.onSortByPopular();
+
+            // Set the action bar title to popular movies
             setActionBarTitle(getString(R.string.popular_movies_title));
 
         }
 
-        if (v.getTag().equals(TAG_SORT_RATING)) {
+        if (v.getTag().equals(Constants.TAG_SORT_RATING)) {
 
             fragment.onSortByRating();
             setActionBarTitle(getString(R.string.kids_movies_title));
@@ -131,84 +115,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void setActionBarTitle(String title) {
+    /**
+     * Custom method to set the action bar title
+     */
+    private void setActionBarTitle(String title) {
         getSupportActionBar().setTitle(title);
     }
 
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        Log.i("LC", "Activity onDestroy");
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        Log.i("LC", "Activity onConfigurationChanged");
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Log.i("LC", "Activity onBackPressed");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        Log.i("LC", "Activity onPause");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        Log.i("LC", "Activity onResume");
-    }
-
-    @Override
-    protected void onResumeFragments() {
-        super.onResumeFragments();
-
-        Log.i("LC", "Activity onResumeFragments");
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Log.i("LC", "Activity onSaveInstanceState");
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        Log.i("LC", "Activity onStart");
-    }
-
-    @Override
-    public void onAttachFragment(Fragment fragment) {
-        super.onAttachFragment(fragment);
-
-        Log.i("LC", "Activity onAttachFragment");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-
-        Log.i("LC", "Activity onRestart");
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        Log.i("LC", "Activity onRestoreInstanceState");
-    }
 }

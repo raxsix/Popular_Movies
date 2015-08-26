@@ -10,6 +10,6 @@ public interface JsonKeys {
     String KEY_POSTER_PATH = "poster_path";
     String KEY_ORIGINAL_TITLE = "original_title";
     String KEY_OVERVIEW = "overview";
-    String KEY_VOTE_AVARAGE = "vote_average";
+    String KEY_VOTE_AVERAGE = "vote_average";
     String KEY_RELEASE_DATE = "release_date";
 }

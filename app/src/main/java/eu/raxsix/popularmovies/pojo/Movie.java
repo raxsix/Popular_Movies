@@ -43,7 +43,7 @@ public class Movie {
         this.posterImagePath = posterImagePath;
     }
 
-    public String getPosterImagePath(){
+    public String getPosterImagePath() {
         return posterImagePath;
     }
 

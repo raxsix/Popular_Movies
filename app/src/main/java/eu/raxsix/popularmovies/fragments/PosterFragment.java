@@ -1,18 +1,13 @@
 package eu.raxsix.popularmovies.fragments;
 
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -44,23 +39,23 @@ import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 import eu.raxsix.popularmovies.pojo.Movie;
 
+import static eu.raxsix.popularmovies.extras.Constants.BASE_REQUEST_URL;
+import static eu.raxsix.popularmovies.extras.Constants.MOST_RATED_MOVIES;
+import static eu.raxsix.popularmovies.extras.Constants.POPULAR_MOVIES;
+import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_POPULAR;
+import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_RATED;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_ID;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_ORIGINAL_TITLE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_OVERVIEW;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_POSTER_PATH;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_RELEASE_DATE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_RESULTS;
-import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_VOTE_AVARAGE;
+import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_VOTE_AVERAGE;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class PosterFragment extends Fragment implements SortListener {
-
-    private static final String BASE_REQUEST_URL = "http://api.themoviedb.org/3/discover/movie?";
-    private static final String POPULAR_MOVIES = "sort_by=popularity.desc&api_key=";
-    private static final String MOST_RATED_MOVIES = "certification_country=US&certification.lte=G&sort_by=popularity.desc&api_key=";
-
 
     private List<Movie> mMovieList;
     private List<Movie> mTopRatedMovieList;
@@ -70,164 +65,95 @@ public class PosterFragment extends Fragment implements SortListener {
     private JsonObjectRequest mJsObjRequest;
     private TextView mErrorView;
     private RequestQueue mRequestQueue;
-    ProgressDialog mDialog;
+    private ProgressDialog mDialog;
 
-    public PosterFragment() {
-        // Required empty public constructor
-    }
-
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.e("LC", "Fragment onCreate");
-        Log.d("test", "PosterFragment onCreate");
-
-
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.d("LC","Fragment onCreateView");
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_poster, container, false);
 
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        Log.d("LC", "Fragment onResume");
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        Log.d("LC", "Fragment onStart");
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        Log.d("LC", "Fragment onPause");
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        Log.d("LC", "Fragment onStop");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        Log.d("LC", "Fragment onDestroy");
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-
-        Log.d("test", "Fragment onDetach");
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        Log.d("LC", "Fragment onAttach");
-
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        Log.d("LC", "Fragment onViewCreated");
-    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        Log.d("LC", "Fragment onActivityCreated");
+        mDialog = new ProgressDialog(getActivity());
 
-            mDialog = new ProgressDialog(getActivity());
-            mDialog.setMessage(getString(R.string.loading));
+        mDialog.setMessage(getString(R.string.loading));
 
-            mErrorView = (TextView) getActivity().findViewById(R.id.errorView);
-            mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.recyclerView);
-            mMovieList = new ArrayList<>();
-            mTopRatedMovieList = new ArrayList<>();
+        mErrorView = (TextView) getActivity().findViewById(R.id.errorView);
+        mRecyclerView = (RecyclerView) getActivity().findViewById(R.id.recyclerView);
 
-            mDialog.show();
+        mMovieList = new ArrayList<>();
+        mTopRatedMovieList = new ArrayList<>();
 
-            // Instantiate the RequestQueue.
-            mRequestQueue = VolleySingleton.getsInstance().getRequestQueue();
+        mDialog.show();
 
-            // Creating url
-            String url = BASE_REQUEST_URL + POPULAR_MOVIES + ApiKey.API_KEY;
+        // Instantiate the RequestQueue.
+        mRequestQueue = VolleySingleton.getsInstance().getRequestQueue();
 
-            Log.d("Test", url);
+        // Creating url
+        String url = BASE_REQUEST_URL + POPULAR_MOVIES + ApiKey.API_KEY;
 
-            mJsObjRequest = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
+        mJsObjRequest = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
 
-                    mErrorView.setVisibility(View.GONE);
-                    mJsObjRequest.setTag("popular");
+                mErrorView.setVisibility(View.GONE);
+                mJsObjRequest.setTag(TAG_REQUEST_POPULAR);
 
-                    Log.d("test", "popular tag has been set");
+                // Parse the response
+                parseJSONResponse(response);
 
-                    parseJSONResponse(response);
+                mDialog.hide();
 
-                    mDialog.hide();
+                // Create adapter for recyclerView
+                movieAdapter = new MovieAdapter(getActivity(), mMovieList);
 
-                    movieAdapter = new MovieAdapter(getActivity(), mMovieList);
-                    mRecyclerView.setAdapter(movieAdapter);
+                // Set the adapter
+                mRecyclerView.setAdapter(movieAdapter);
 
-                    // Enable optimizations if all item views are of the same height and width for significantly smoother scrolling:
-                    mRecyclerView.setHasFixedSize(true);
+                // Enable optimizations if all item views are of the same height and width for significantly smoother scrolling:
+                mRecyclerView.setHasFixedSize(true);
 
+                // Set the layout manager for the recyclerView
+                mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
-                    mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
 
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
+                handleVolleyError(error);
 
-                    handleVolleyError(error);
+                mDialog.hide();
 
-                    mDialog.hide();
+            }
+        });
 
-                }
-            });
-
-            // Add the request to the RequestQueue.
-            mRequestQueue.add(mJsObjRequest);
-
+        // Add the request to the RequestQueue.
+        mRequestQueue.add(mJsObjRequest);
     }
 
 
-
+    /**
+     * Parses the Volley response and build up movie lists
+     *
+     * @param response from Volley response
+     */
     private void parseJSONResponse(JSONObject response) {
 
         if (response != null && response.length() > 0) {
 
-            Log.d("test", "in parseJSONResponse");
             try {
 
                 if (response.has(KEY_RESULTS)) {
 
-                    Log.d("test", "parsing json has key results");
 
                     JSONArray jsonArray = response.getJSONArray(KEY_RESULTS);
 
@@ -266,9 +192,9 @@ public class PosterFragment extends Fragment implements SortListener {
                             overview = movie.getString(KEY_OVERVIEW);
                         }
 
-                        if (movie.has(KEY_VOTE_AVARAGE) && !movie.isNull(KEY_VOTE_AVARAGE)) {
+                        if (movie.has(KEY_VOTE_AVERAGE) && !movie.isNull(KEY_VOTE_AVERAGE)) {
 
-                            average = movie.getDouble(KEY_VOTE_AVARAGE);
+                            average = movie.getDouble(KEY_VOTE_AVERAGE);
                         }
 
                         if (movie.has(KEY_RELEASE_DATE) && !movie.isNull(KEY_RELEASE_DATE)) {
@@ -280,21 +206,20 @@ public class PosterFragment extends Fragment implements SortListener {
                         // If movie does not have title or id do not but it to the movies list
                         if (id != -1 && !title.equals(Constants.NA)) {
 
-                            if (mJsObjRequest.getTag().equals("popular")) {
+                            if (mJsObjRequest.getTag().equals(TAG_REQUEST_POPULAR)) {
 
-
+                                // Build up the popular movie list
                                 mMovieList.add(new Movie(id, title, posterPath, overview, average, release));
 
                             }
-                            if (mJsObjRequest.getTag().equals("rated")) {
+                            if (mJsObjRequest.getTag().equals(TAG_REQUEST_RATED)) {
 
-
+                                // Build up the highest rated movie list
                                 mTopRatedMovieList.add(new Movie(id, title, posterPath, overview, average, release));
                             }
                         }
                     }
                 }
-
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -303,6 +228,11 @@ public class PosterFragment extends Fragment implements SortListener {
 
     }
 
+    /**
+     * Custom method for handling different Volley errors
+     *
+     * @param error
+     */
     private void handleVolleyError(VolleyError error) {
 
         mErrorView.setVisibility(View.VISIBLE);
@@ -329,44 +259,49 @@ public class PosterFragment extends Fragment implements SortListener {
 
     }
 
+    /**
+     * Implemented Interface method
+     * When the popular movies button is clicked this method is called
+     */
     @Override
     public void onSortByPopular() {
 
-        Log.d("test", "onSortByPopular");
+        // Change the adapter for recyclerView
         mRecyclerView.setAdapter(movieAdapter);
-
     }
 
+
+    /**
+     * Implemented Interface method
+     * When the highest rated movie button is clicked this method is called
+     */
     @Override
     public void onSortByRating() {
 
-
+        // If highest rated movie list is not null it means we already made a network call and we have the list
         if (mTopRatedMovieList != null && !mTopRatedMovieList.isEmpty() && mTopRatedMovieList.size() > 0) {
 
-            Log.d("test", "onSortByRating second time no network call");
+            // Change the adapter
             mRecyclerView.setAdapter(mTopRatedAdapter);
 
         } else {
 
-            Log.d("test", "onSortByRating first time network call");
+            // if highest rated movie list is null we have to make a network call
+
             // Creating url
             String url = BASE_REQUEST_URL + MOST_RATED_MOVIES + ApiKey.API_KEY;
-            Log.d("test", "onSortByRating url: " + url);
 
+            // Make a network call
             mJsObjRequest = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
 
-                    Log.d("test", "in onSortByRating response");
                     mErrorView.setVisibility(View.GONE);
-
 
                     parseJSONResponse(response);
 
                     mDialog.hide();
 
-
-                    Log.d("test", mTopRatedMovieList.size() + "");
                     mTopRatedAdapter = new MovieAdapter(getActivity(), mTopRatedMovieList);
 
                     mRecyclerView.setAdapter(mTopRatedAdapter);
@@ -383,29 +318,28 @@ public class PosterFragment extends Fragment implements SortListener {
                 }
             });
 
-            mJsObjRequest.setTag("rated");
-            Log.d("test", "mJsObjRequest tag has set to rated");
+            mJsObjRequest.setTag(TAG_REQUEST_RATED);
+
             // Add the request to the RequestQueue.
             mRequestQueue.add(mJsObjRequest);
-
-
         }
     }
 
+    /**
+     * Callback when the phone rotates
+     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
 
-        Log.d("LC", "Fragment onConfigurationChanged");
-       if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
-
-
-           mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
-       }else{
-
-           mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
-       }
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            // If in landscape mode then show 3 rows of poster
+            mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+        } else {
+            // If in portrait mode then show 2 rows of poster
+            mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+        }
 
     }
 }
