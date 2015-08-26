@@ -133,6 +133,8 @@ public class PosterFragment extends Fragment implements SortListener {
 
                 mDialog.hide();
 
+                // TODO when the network connection handling are ok, remove it, right now is set to GONE to prevent crashing the app when tapping on empty reciclerview
+                mRecyclerView.setVisibility(View.GONE);
             }
         });
 
@@ -231,7 +233,6 @@ public class PosterFragment extends Fragment implements SortListener {
     /**
      * Custom method for handling different Volley errors
      *
-     * @param error
      */
     private void handleVolleyError(VolleyError error) {
 
@@ -240,7 +241,7 @@ public class PosterFragment extends Fragment implements SortListener {
         if (error instanceof TimeoutError || error instanceof NoConnectionError) {
 
             mErrorView.setText(R.string.error_timeout);
-            //Toast.makeText(getActivity(), R.string.error_timeout, Toast.LENGTH_LONG).show();
+
 
         } else if (error instanceof AuthFailureError) {
 
@@ -311,9 +312,9 @@ public class PosterFragment extends Fragment implements SortListener {
                 @Override
                 public void onErrorResponse(VolleyError error) {
 
+                    mDialog.hide();
                     handleVolleyError(error);
 
-                    mDialog.hide();
 
                 }
             });

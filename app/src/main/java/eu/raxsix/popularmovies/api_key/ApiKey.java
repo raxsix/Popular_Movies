@@ -15,6 +15,6 @@ public class ApiKey {
      * TODO: Your themoviedb.org API key goes here, Don't forget to delete if upload to GitHub
      *
      */
-    public static final String API_KEY = "6a77b11f7edadaabb2c8f2b339e947a3";
+    public static final String API_KEY = "";  //ENTER YOUR KEY HERE
 
 }

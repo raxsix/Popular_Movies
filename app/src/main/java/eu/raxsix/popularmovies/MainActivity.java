@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rated_sort.setOnClickListener(this);
 
         // Putting the menu together
-        FloatingActionMenu actionMenu = new FloatingActionMenu.Builder(this)
+        new FloatingActionMenu.Builder(this)
                 .setRadius(200)
                 .setStartAngle(180)
                 .setEndAngle(230)
