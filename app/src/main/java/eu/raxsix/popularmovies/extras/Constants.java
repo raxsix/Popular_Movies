@@ -6,4 +6,6 @@ package eu.raxsix.popularmovies.extras;
 public interface Constants {
 
     String NA = "NA";
+    String BASE_URL = "http://image.tmdb.org/t/p/";
+    String IMAGE_SIZE = "w500";
 }

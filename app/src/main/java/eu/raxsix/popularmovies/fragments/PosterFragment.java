@@ -82,7 +82,7 @@ public class PosterFragment extends Fragment implements SortListener {
         super.onCreate(savedInstanceState);
         Log.e("LC", "Fragment onCreate");
         Log.d("test", "PosterFragment onCreate");
-        setHasOptionsMenu(true);
+
 
     }
 
@@ -217,31 +217,6 @@ public class PosterFragment extends Fragment implements SortListener {
     }
 
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-
-        inflater.inflate(R.menu.poster_fragment_menu, menu);
-
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.sort_by_popular) {
-
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-
-
-    }
 
     private void parseJSONResponse(JSONObject response) {
 

@@ -89,13 +89,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SubActionButton.Builder itemBuilder = new SubActionButton.Builder(this);
 
         ImageView popularImage = new ImageView(this);
-        popularImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
+        popularImage.setImageResource(R.drawable.ic_stars_black_24dp);
         SubActionButton popular_sort = itemBuilder.setContentView(popularImage).build();
         popular_sort.setTag(TAG_SORT_POPULAR);
         popular_sort.setOnClickListener(this);
 
         ImageView ratedImage = new ImageView(this);
-        ratedImage.setImageResource(R.drawable.ic_stars_black_24dp);
+        ratedImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
         SubActionButton rated_sort = itemBuilder.setContentView(ratedImage).build();
         rated_sort.setTag(TAG_SORT_RATING);
         rated_sort.setOnClickListener(this);
@@ -119,14 +119,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (v.getTag().equals(TAG_SORT_POPULAR)) {
 
             fragment.onSortByPopular();
-            setActionBarTitle("Most popular moives");
+            setActionBarTitle(getString(R.string.popular_movies_title));
 
         }
 
         if (v.getTag().equals(TAG_SORT_RATING)) {
 
             fragment.onSortByRating();
-            setActionBarTitle("Highest rated movies");
+            setActionBarTitle(getString(R.string.kids_movies_title));
 
         }
     }

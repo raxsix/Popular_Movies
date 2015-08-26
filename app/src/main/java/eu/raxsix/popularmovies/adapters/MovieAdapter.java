@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,13 +21,11 @@ import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 import eu.raxsix.popularmovies.pojo.Movie;
 
+import static eu.raxsix.popularmovies.extras.Constants.*;
 /**
  * Created by Ragnar on 8/23/2015.
  */
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
-
-    private static final String BASE_URL = "http://image.tmdb.org/t/p/";
-    private static final String IMAGE_SIZE = "w500";
 
     private List<Movie> movies;
     private LayoutInflater inflater;
@@ -100,8 +99,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
 
             int position = getLayoutPosition(); // gets item position
             Movie movie = movies.get(position);
-
-            Fragment fragment = new Fragment();
 
 
             Intent intent = new Intent(context, MovieDetailActivity.class);
