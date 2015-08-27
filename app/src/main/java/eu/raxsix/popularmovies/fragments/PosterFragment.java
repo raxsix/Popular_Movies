@@ -40,7 +40,7 @@ import eu.raxsix.popularmovies.network.VolleySingleton;
 import eu.raxsix.popularmovies.pojo.Movie;
 
 import static eu.raxsix.popularmovies.extras.Constants.BASE_REQUEST_URL;
-import static eu.raxsix.popularmovies.extras.Constants.MOST_RATED_MOVIES;
+import static eu.raxsix.popularmovies.extras.Constants.KIDS_MOVIES;
 import static eu.raxsix.popularmovies.extras.Constants.POPULAR_MOVIES;
 import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_POPULAR;
 import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_RATED;
@@ -117,6 +117,7 @@ public class PosterFragment extends Fragment implements SortListener {
 
                 // Set the adapter
                 mRecyclerView.setAdapter(movieAdapter);
+
 
                 // Enable optimizations if all item views are of the same height and width for significantly smoother scrolling:
                 mRecyclerView.setHasFixedSize(true);
@@ -232,7 +233,6 @@ public class PosterFragment extends Fragment implements SortListener {
 
     /**
      * Custom method for handling different Volley errors
-     *
      */
     private void handleVolleyError(VolleyError error) {
 
@@ -290,7 +290,7 @@ public class PosterFragment extends Fragment implements SortListener {
             // if highest rated movie list is null we have to make a network call
 
             // Creating url
-            String url = BASE_REQUEST_URL + MOST_RATED_MOVIES + ApiKey.API_KEY;
+            String url = BASE_REQUEST_URL + KIDS_MOVIES + ApiKey.API_KEY;
 
             // Make a network call
             mJsObjRequest = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
