@@ -26,16 +26,10 @@ public class MovieContract {
 
         public static final String COLUMN_OVERVIEW = "overview";
 
-    }
-
-    public static final class FavoriteEnrty implements BaseColumns{
-
-        public static final String TABLE_NAME = "favorite";
-
-        // Column with the foreign key into the movie table.
-        public static final String COLUMN_MOVIE_KEY = "movie_id";
+        public static final String COLUMN_IS_FAVORITE = "favorite";
 
     }
+
 
     public static final class TrailerEntry implements BaseColumns{
 
@@ -64,7 +58,7 @@ public class MovieContract {
         // Column with the foreign key into the movie table.
         public static final String COLUMN_MOVIE_KEY = "movie_id";
 
-        public static final String COLUMN_AUTHOR= "author";
+        public static final String COLUMN_AUTHOR = "author";
 
         public static final String COLUMN_CONTENT = "content";
     }
