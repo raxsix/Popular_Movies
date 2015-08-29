@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridView;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
@@ -34,6 +35,7 @@ import java.util.List;
 import eu.raxsix.popularmovies.Interfaces.SortListener;
 import eu.raxsix.popularmovies.R;
 import eu.raxsix.popularmovies.adapters.MovieAdapter;
+import eu.raxsix.popularmovies.adapters.MovieGridAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
 import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
@@ -67,6 +69,8 @@ public class PosterFragment extends Fragment implements SortListener {
     private RequestQueue mRequestQueue;
     private ProgressDialog mDialog;
 
+    private GridView mGridview;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -81,6 +85,10 @@ public class PosterFragment extends Fragment implements SortListener {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        GridView gridview = (GridView) getActivity().findViewById(R.id.gridview);
+
+        gridview.setAdapter(new MovieGridAdapter(getActivity(), null, 0));
 
         mDialog = new ProgressDialog(getActivity());
 

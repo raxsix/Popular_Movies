@@ -4,11 +4,17 @@
     android:layout_height="match_parent"
     tools:context="eu.raxsix.popularmovies.fragments.PosterFragment">
 
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <GridView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/gridview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:columnWidth="90dp"
+        android:numColumns="auto_fit"
+        android:verticalSpacing="10dp"
+        android:horizontalSpacing="10dp"
+        android:stretchMode="columnWidth"
+        android:gravity="center"
+        />
 
 
     <TextView
@@ -18,5 +24,6 @@
         android:layout_gravity="center_vertical"
         android:gravity="center"
         android:visibility="gone" />
+
 
 </FrameLayout>
