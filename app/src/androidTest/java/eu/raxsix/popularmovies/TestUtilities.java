@@ -22,6 +22,7 @@ public class TestUtilities extends AndroidTestCase {
     static ContentValues createMovieValues() {
 
         ContentValues movieValues = new ContentValues();
+        movieValues.put(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID, 76341);
         movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, "Spider Man");
         movieValues.put(MovieContract.MovieEntry.COLUMN_DATE, "2015-10-12");
         movieValues.put(MovieContract.MovieEntry.COLUMN_IMAGE_PATH, "adsfasdgasga");

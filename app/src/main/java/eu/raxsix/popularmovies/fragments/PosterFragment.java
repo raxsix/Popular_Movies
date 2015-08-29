@@ -2,11 +2,16 @@ package eu.raxsix.popularmovies.fragments;
 
 
 import android.app.ProgressDialog;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +40,7 @@ import eu.raxsix.popularmovies.Interfaces.SortListener;
 import eu.raxsix.popularmovies.R;
 import eu.raxsix.popularmovies.adapters.MovieAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
+import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 import eu.raxsix.popularmovies.pojo.Movie;
@@ -205,21 +211,25 @@ public class PosterFragment extends Fragment implements SortListener {
                             release = movie.getString(KEY_RELEASE_DATE);
                         }
 
-
                         // If movie does not have title or id do not but it to the movies list
                         if (id != -1 && !title.equals(Constants.NA)) {
 
                             if (mJsObjRequest.getTag().equals(TAG_REQUEST_POPULAR)) {
 
                                 // Build up the popular movie list
-                                mMovieList.add(new Movie(id, title, posterPath, overview, average, release));
+                                mMovieList.add(new Movie(id, title, posterPath, overview, average, release, false));
 
                             }
                             if (mJsObjRequest.getTag().equals(TAG_REQUEST_RATED)) {
 
                                 // Build up the highest rated movie list
-                                mTopRatedMovieList.add(new Movie(id, title, posterPath, overview, average, release));
+                                mTopRatedMovieList.add(new Movie(id, title, posterPath, overview, average, release, false));
                             }
+
+                            long dbMovieId = addMovie(id,title,posterPath,overview,average,release);
+
+                            Log.d("DB", dbMovieId + "");
+
                         }
                     }
                 }
@@ -259,6 +269,56 @@ public class PosterFragment extends Fragment implements SortListener {
 
 
     }
+
+private long addMovie(long remoteMovieId, String title, String posterImagePath, String overview, double rating, String releasDate){
+
+
+    long movieId;
+
+    // First, check if the location with this city name exists in the db
+    Cursor locationCursor = getActivity().getContentResolver().query(
+            MovieContract.MovieEntry.CONTENT_URI,                      // SELECT ID FROM MOVIE WHERE remote_movie_id = remoteMovieId;
+            new String[]{MovieContract.MovieEntry._ID},
+            MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
+            new String[]{String.valueOf(remoteMovieId)},
+            null);
+
+    if (locationCursor.moveToFirst()) {
+        int movieIdIndex = locationCursor.getColumnIndex(MovieContract.MovieEntry._ID);
+        movieId = locationCursor.getLong(movieIdIndex);
+        Log.d("DB", movieId + " is already in db");
+    } else {
+        // Now that the content provider is set up, inserting rows of data is pretty simple.
+        // First create a ContentValues object to hold the data you want to insert.
+        ContentValues movieValues = new ContentValues();
+
+        // Then add the data, along with the corresponding name of the data type,
+        // so the content provider knows what kind of value is being inserted.
+        movieValues.put(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID, remoteMovieId);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, title);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_IMAGE_PATH, posterImagePath);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, overview);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, rating);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_DATE, releasDate);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 0);
+
+        // Finally, insert movie data into the database.
+        Uri insertedUri = getActivity().getContentResolver().insert(
+                MovieContract.MovieEntry.CONTENT_URI,
+                movieValues
+        );
+
+        // The resulting URI contains the ID for the row.  Extract the movieId from the Uri.
+        movieId = ContentUris.parseId(insertedUri);
+        Log.d("DB", movieId + " first time inserted to db");
+    }
+
+    locationCursor.close();
+    // Wait, that worked?  Yes!
+    return movieId;
+
+
+}
 
     /**
      * Implemented Interface method
