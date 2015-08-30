@@ -3,6 +3,7 @@ package eu.raxsix.popularmovies;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -10,7 +11,9 @@ import com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
 import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
 
+import eu.raxsix.popularmovies.Interfaces.OnFragmentInteractionListener;
 import eu.raxsix.popularmovies.extras.Constants;
+import eu.raxsix.popularmovies.fragments.ItemGridFragment;
 import eu.raxsix.popularmovies.fragments.PosterFragment;
 
 /**
@@ -21,9 +24,9 @@ import eu.raxsix.popularmovies.fragments.PosterFragment;
  *
  * The highest rated movie url does not work for me I used Kids movies for alternative
  */
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnFragmentInteractionListener {
 
-    private Fragment mPosterFragment;
+    private Fragment mGridFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,14 +35,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (savedInstanceState == null) {
 
-            mPosterFragment = new PosterFragment();
+            mGridFragment = new ItemGridFragment();
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.posterContainer, mPosterFragment, "poster")
+                    .add(R.id.posterContainer, mGridFragment, "poster")
                     .commit();
+            Log.d("GRID", "Activity - onCreate -ItemGridFragment is added");
         }
 
         // Call to build up the floating action button
-        createFloatingActionButton();
+       // createFloatingActionButton();
     }
 
     /**
@@ -122,4 +126,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setTitle(title);
     }
 
+    @Override
+    public void onItemSelected(long id) {
+
+    }
 }

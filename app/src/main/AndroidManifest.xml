@@ -26,6 +26,10 @@
             android:label="@string/title_activity_movie_detail">
 
         </activity>
+
+        <provider
+            android:name=".database.MovieProvider"
+            android:authorities="eu.raxsix.popularmovies" />
     </application>
 
 </manifest>

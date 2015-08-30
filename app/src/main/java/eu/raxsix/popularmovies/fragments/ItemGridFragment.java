@@ -1,6 +1,6 @@
 package eu.raxsix.popularmovies.fragments;
 
-
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -15,18 +15,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkError;
-import com.android.volley.NoConnectionError;
-import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.android.volley.ServerError;
-import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
@@ -34,8 +29,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import eu.raxsix.popularmovies.Interfaces.SortListener;
+import java.security.acl.LastOwnerException;
+
+import eu.raxsix.popularmovies.Interfaces.OnFragmentInteractionListener;
 import eu.raxsix.popularmovies.R;
+import eu.raxsix.popularmovies.adapters.GridAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
 import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
@@ -53,38 +51,111 @@ import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_RESULTS;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_VOTE_AVERAGE;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Created by Ragnar on 8/30/2015.
  */
-public class PosterFragment extends Fragment implements SortListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class ItemGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
+
 
     private JsonObjectRequest mJsObjRequest;
     private TextView mErrorView;
     private RequestQueue mRequestQueue;
     private ProgressDialog mDialog;
 
-    private GridView mGridview;
+    private OnFragmentInteractionListener mListener;
+    private GridAdapter adapter;
 
-    private static final int FORECAST_LOADER = 0;
+    public ItemGridFragment() {
+        // Required empty public constructor
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnFragmentInteractionListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+        Log.i("GRID", "Fragment - onAttach");
+    }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-
+        Log.i("GRID", "Fragment - onCreateView");
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_poster, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_grid, container, false);
+
+        GridView gridview = (GridView) rootView.findViewById(R.id.gridview);
+        adapter = new GridAdapter(getActivity(), R.layout.fragment_item_grid);
+        gridview.setAdapter(adapter);
+        gridview.setOnItemClickListener(this);
 
 
         return rootView;
     }
 
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.i("GRID", "Fragment - onActivityCreated");
+        getLoaderManager().initLoader(0, null, this);
 
-        getLoaderManager().initLoader(FORECAST_LOADER, null, this);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.i("GRID", "Fragment - onStart");
+        updateMovies();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.i("GRID", "Fragment - onCreateLoader");
+        CursorLoader loader = new CursorLoader(getActivity(),
+                MovieContract.MovieEntry.CONTENT_URI,
+                new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
+                null,
+                null,
+                null);
+
+        return loader;
+    }
+
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        adapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+        adapter.swapCursor(null);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+        if (null != mListener) {
+            // Notify the active callbacks interface (the activity, if the
+            // fragment is attached to one) that an item has been selected.
+            mListener.onItemSelected(id);
+        }
+    }
+
+
+    private void updateMovies(){
 
 
         mDialog = new ProgressDialog(getActivity());
@@ -117,8 +188,6 @@ public class PosterFragment extends Fragment implements SortListener, LoaderMana
             @Override
             public void onErrorResponse(VolleyError error) {
 
-                handleVolleyError(error);
-
                 mDialog.hide();
 
             }
@@ -127,7 +196,6 @@ public class PosterFragment extends Fragment implements SortListener, LoaderMana
         // Add the request to the RequestQueue.
         mRequestQueue.add(mJsObjRequest);
     }
-
 
     /**
      * Parses the Volley response and build up movie lists
@@ -194,7 +262,7 @@ public class PosterFragment extends Fragment implements SortListener, LoaderMana
                         // If movie does not have title or id do not but it to the movies list
                         if (id != -1 && !title.equals(Constants.NA)) {
 
-                            long dbMovieId = addMovie(id, title, posterPath, overview, average, release);
+                            long dbMovieId = addMovie(id,title,posterPath,overview,average,release);
 
                             Log.d("DB", dbMovieId + "");
 
@@ -209,36 +277,7 @@ public class PosterFragment extends Fragment implements SortListener, LoaderMana
 
     }
 
-    /**
-     * Custom method for handling different Volley errors
-     */
-    private void handleVolleyError(VolleyError error) {
-
-        mErrorView.setVisibility(View.VISIBLE);
-
-        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-
-            mErrorView.setText(R.string.error_timeout);
-
-
-        } else if (error instanceof AuthFailureError) {
-
-            //TODO
-        } else if (error instanceof ServerError) {
-
-            //TODO
-        } else if (error instanceof NetworkError) {
-
-            //TODO
-        } else if (error instanceof ParseError) {
-
-            //TODO
-        }
-
-
-    }
-
-    private long addMovie(long remoteMovieId, String title, String posterImagePath, String overview, double rating, String releasDate) {
+    private long addMovie(long remoteMovieId, String title, String posterImagePath, String overview, double rating, String releasDate){
 
 
         long movieId = 0;
@@ -251,13 +290,12 @@ public class PosterFragment extends Fragment implements SortListener, LoaderMana
                 new String[]{String.valueOf(remoteMovieId)},
                 null);
 
-        if (locationCursor != null) {
+        if (locationCursor != null){
 
             if (locationCursor.moveToFirst()) {
                 int movieIdIndex = locationCursor.getColumnIndex(MovieContract.MovieEntry._ID);
                 movieId = locationCursor.getLong(movieIdIndex);
-                Log.d("DB", movieId + " is already in db");
-            }
+                Log.d("DB", movieId + " is already in db");}
 
         } else {
             // Now that the content provider is set up, inserting rows of data is pretty simple.
@@ -292,43 +330,4 @@ public class PosterFragment extends Fragment implements SortListener, LoaderMana
 
     }
 
-    /**
-     * Implemented Interface method
-     * When the popular movies button is clicked this method is called
-     */
-    @Override
-    public void onSortByPopular() {
-
-    }
-
-
-    /**
-     * Implemented Interface method
-     * When the highest rated movie button is clicked this method is called
-     */
-    @Override
-    public void onSortByRating() {
-
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getActivity(),
-                MovieContract.MovieEntry.CONTENT_URI,
-                null,
-                null,
-                null,
-                null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-
-    }
 }
