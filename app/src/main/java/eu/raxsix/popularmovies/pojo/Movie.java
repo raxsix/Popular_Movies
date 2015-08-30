@@ -9,6 +9,8 @@ public class Movie {
     private String title;
     private String posterImagePath;
     private String overview;
+    private String tag;
+    private String popularity;
     private double rating;
     private String releaseDate;
     private boolean isFavorite;

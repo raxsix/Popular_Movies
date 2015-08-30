@@ -24,6 +24,9 @@ public class TestUtilities extends AndroidTestCase {
         ContentValues movieValues = new ContentValues();
         movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, "Spider Man");
         movieValues.put(MovieContract.MovieEntry.COLUMN_DATE, "2015-10-12");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, 17.032);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_TAG, "popular");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID, 177572);
         movieValues.put(MovieContract.MovieEntry.COLUMN_IMAGE_PATH, "adsfasdgasga");
         movieValues.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 1);
         movieValues.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, "Long text about the movie");
