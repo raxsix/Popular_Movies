@@ -10,13 +10,13 @@ public class Movie {
     private String posterImagePath;
     private String overview;
     private String tag;
-    private String popularity;
+    private double popularity;
     private double rating;
     private String releaseDate;
     private boolean isFavorite;
 
 
-    public Movie(long id, String title, String posterImagePath, String overview, double rating, String releaseDate, boolean isFavorite) {
+    public Movie(long id, String title, String posterImagePath, String overview, double rating, String releaseDate,double popularity, String tag, boolean isFavorite) {
 
         this.id = id;
         this.title = title;
@@ -25,7 +25,8 @@ public class Movie {
         this.rating = rating;
         this.releaseDate = releaseDate;
         this.isFavorite = isFavorite;
-
+        this.popularity = popularity;
+        this.tag = tag;
     }
 
     public long getId() {
@@ -82,5 +83,21 @@ public class Movie {
 
     public void setIsFavorite(boolean isFavorite) {
         this.isFavorite = isFavorite;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public double getPopularity() {
+        return popularity;
+    }
+
+    public void setPopularity(double popularity) {
+        this.popularity = popularity;
     }
 }
