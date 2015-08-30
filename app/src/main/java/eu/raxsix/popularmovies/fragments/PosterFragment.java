@@ -85,9 +85,17 @@ public class PosterFragment extends Fragment implements SortListener {
 
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        Log.d("test", "onStart");
+    }
+
+    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        Log.d("test", "onActivityCreated");
         mDialog = new ProgressDialog(getActivity());
 
         mDialog.setMessage(getString(R.string.loading));
