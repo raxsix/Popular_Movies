@@ -11,9 +11,10 @@ public class Movie {
     private String overview;
     private double rating;
     private String releaseDate;
+    private boolean isFavorite;
 
 
-    public Movie(long id, String title, String posterImagePath, String overview, double rating, String releaseDate) {
+    public Movie(long id, String title, String posterImagePath, String overview, double rating, String releaseDate, boolean isFavorite) {
 
         this.id = id;
         this.title = title;
@@ -21,6 +22,8 @@ public class Movie {
         this.overview = overview;
         this.rating = rating;
         this.releaseDate = releaseDate;
+        this.isFavorite = isFavorite;
+
     }
 
     public long getId() {
@@ -69,5 +72,13 @@ public class Movie {
 
     public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public boolean getisFavorite() {
+        return isFavorite;
+    }
+
+    public void setIsFavorite(boolean isFavorite) {
+        this.isFavorite = isFavorite;
     }
 }

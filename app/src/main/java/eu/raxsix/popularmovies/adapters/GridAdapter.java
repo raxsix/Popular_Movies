@@ -22,7 +22,7 @@ import static eu.raxsix.popularmovies.extras.Constants.IMAGE_SIZE;
 public class GridAdapter extends SimpleCursorAdapter {
 
     public GridAdapter(Context context, int layout) {
-        super(context, layout, null, new String[]{MovieContract.MovieEntry.COLUMN_IMAGE_PATH}, new int[]{android.R.id.text1}, 0);
+        super(context, layout, null, new String[]{MovieContract.MovieEntry.COLUMN_IMAGE_PATH}, null, 0);
         Log.i("GRID", " in GridAdapter constructor");
     }
 
@@ -34,9 +34,6 @@ public class GridAdapter extends SimpleCursorAdapter {
         String title = content;
         String posterUrl = BASE_URL + IMAGE_SIZE + content;
         Log.d("GRID", posterUrl);
-
-        TextView titleText = (TextView) view.findViewById(android.R.id.text1);
-        titleText.setText(title);
 
         NetworkImageView iconView = (NetworkImageView) view.findViewById(R.id.imageView1);
         iconView.setImageUrl(posterUrl, VolleySingleton.getsInstance().getImageLoader());

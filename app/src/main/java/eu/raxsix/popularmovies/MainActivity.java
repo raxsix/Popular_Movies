@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         // Call to build up the floating action button
-       // createFloatingActionButton();
+        createFloatingActionButton();
     }
 
     /**
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
 
         // Getting the Poster fragment reference
-        PosterFragment fragment = (PosterFragment) getSupportFragmentManager().findFragmentByTag("poster");
+        ItemGridFragment fragment = (ItemGridFragment) getSupportFragmentManager().findFragmentByTag("poster");
 
 
         if (v.getTag().equals(Constants.TAG_SORT_POPULAR)) {

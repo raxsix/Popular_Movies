@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -29,13 +31,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.security.acl.LastOwnerException;
-
 import eu.raxsix.popularmovies.Interfaces.OnFragmentInteractionListener;
+import eu.raxsix.popularmovies.Interfaces.SortListener;
+import eu.raxsix.popularmovies.MovieDetailActivity;
 import eu.raxsix.popularmovies.R;
 import eu.raxsix.popularmovies.adapters.GridAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
 import eu.raxsix.popularmovies.database.MovieContract;
+import eu.raxsix.popularmovies.database.MovieDbHelper;
 import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 
@@ -53,13 +56,14 @@ import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_VOTE_AVERAGE;
 /**
  * Created by Ragnar on 8/30/2015.
  */
-public class ItemGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class ItemGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>,SortListener {
 
 
     private JsonObjectRequest mJsObjRequest;
     private TextView mErrorView;
     private RequestQueue mRequestQueue;
     private ProgressDialog mDialog;
+    private MovieDbHelper mOpenHelper;
 
     private OnFragmentInteractionListener mListener;
     private GridAdapter adapter;
@@ -147,15 +151,56 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+        Log.d("INTENT", "position: " + position);
+        Log.d("INTENT", "id: " + id);
+
+        Uri uri = MovieContract.MovieEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build();
+
+        Log.d("INTENT", "uri: " + uri);
+
+        // SELECT * FROM MOVIE WHERE _id = position
+        Cursor movieCursor = getActivity().getContentResolver().query(
+                uri,
+                null,
+                MovieContract.MovieEntry._ID + " = ?",
+                new String[]{String.valueOf(id)},
+                null);
+
+        if (movieCursor == null || !movieCursor.moveToFirst()){
+
+            Log.d("INTENT", "POLE MIDAGI SEES");
+        }else {
+            Log.d("INTENT", "position" + movieCursor.getPosition());
+            Log.d("INTENT", "columns" + movieCursor.getColumnCount());
+            Log.d("INTENT", "count" + movieCursor.getCount());
+
+        }
+
+        int titleIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE);
+        int pathIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_PATH);
+        int overviewIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW);
+        int ratingIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING);
+        int dateIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_DATE);
+
+        Intent intent = new Intent(getActivity(), MovieDetailActivity.class);
+        intent.putExtra(Constants.EXTRA_TITLE, movieCursor.getString(titleIndex));
+        intent.putExtra(Constants.EXTRA_PATH, movieCursor.getString(pathIndex));
+        intent.putExtra(Constants.EXTRA_OVERVIEW, movieCursor.getString(overviewIndex));
+        intent.putExtra(Constants.EXTRA_RATING, movieCursor.getDouble(ratingIndex));
+        intent.putExtra(Constants.EXTRA_DATE, movieCursor.getString(dateIndex));
+        getActivity().startActivity(intent);
+
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
             mListener.onItemSelected(id);
         }
+
+        movieCursor.close();
     }
 
 
-    private void updateMovies(){
+    private void updateMovies() {
 
 
         mDialog = new ProgressDialog(getActivity());
@@ -262,7 +307,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                         // If movie does not have title or id do not but it to the movies list
                         if (id != -1 && !title.equals(Constants.NA)) {
 
-                            long dbMovieId = addMovie(id,title,posterPath,overview,average,release);
+                            long dbMovieId = addMovie(id, title, posterPath, overview, average, release);
 
                             Log.d("DB", dbMovieId + "");
 
@@ -277,26 +322,23 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
     }
 
-    private long addMovie(long remoteMovieId, String title, String posterImagePath, String overview, double rating, String releasDate){
+    private long addMovie(long remoteMovieId, String title, String posterImagePath, String overview, double rating, String releasDate) {
 
 
         long movieId = 0;
 
-        // First, check if the location with this city name exists in the db
-        Cursor locationCursor = getActivity().getContentResolver().query(
+
+        Cursor movieCursor = getActivity().getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,                      // SELECT ID FROM MOVIE WHERE remote_movie_id = remoteMovieId;
                 new String[]{MovieContract.MovieEntry._ID},
                 MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
                 new String[]{String.valueOf(remoteMovieId)},
                 null);
 
-        if (locationCursor != null){
-
-            if (locationCursor.moveToFirst()) {
-                int movieIdIndex = locationCursor.getColumnIndex(MovieContract.MovieEntry._ID);
-                movieId = locationCursor.getLong(movieIdIndex);
-                Log.d("DB", movieId + " is already in db");}
-
+        if (movieCursor.moveToFirst()) {
+            int movieIdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
+            movieId = movieCursor.getLong(movieIdIndex);
+            Log.d("DB", movieId + " is already in db");
         } else {
             // Now that the content provider is set up, inserting rows of data is pretty simple.
             // First create a ContentValues object to hold the data you want to insert.
@@ -323,11 +365,21 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
             Log.d("DB", movieId + " first time inserted to db");
         }
 
-        locationCursor.close();
+        movieCursor.close();
         // Wait, that worked?  Yes!
         return movieId;
 
 
     }
 
+    @Override
+    public void onSortByPopular() {
+        Toast.makeText(getActivity(),"onSortByPopular", Toast.LENGTH_SHORT).show();
+        updateMovies();
+    }
+
+    @Override
+    public void onSortByRating() {
+        Toast.makeText(getActivity(),"onSortByRating", Toast.LENGTH_SHORT).show();
+    }
 }
