@@ -15,6 +15,7 @@ public interface Constants {
 
     String TAG_SORT_POPULAR = "sortPopular";
     String TAG_SORT_RATING = "sortRating";
+    String TAG_SORT_FAVORITES = "sortFavorite";
 
     String TAG_REQUEST_POPULAR = "popular";
     String TAG_REQUEST_RATED = "rated";
@@ -24,5 +25,7 @@ public interface Constants {
     String EXTRA_OVERVIEW = "OVERVIEW";
     String EXTRA_RATING = "RATING";
     String EXTRA_DATE = "DATE";
+    String EXTRA_IS_FAVORITE = "FAVORITE";
+    String EXTRA_ID = "ID";
 
 }

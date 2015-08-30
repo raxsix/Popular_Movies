@@ -312,6 +312,11 @@ public class PosterFragment extends Fragment implements SortListener, LoaderMana
     }
 
     @Override
+    public void onSortByFavorites() {
+
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(getActivity(),
                 MovieContract.MovieEntry.CONTENT_URI,

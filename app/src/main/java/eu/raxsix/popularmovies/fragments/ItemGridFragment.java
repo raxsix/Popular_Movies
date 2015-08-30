@@ -48,6 +48,7 @@ import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_POPULAR;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_ID;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_ORIGINAL_TITLE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_OVERVIEW;
+import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_POPULARITY;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_POSTER_PATH;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_RELEASE_DATE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_RESULTS;
@@ -56,7 +57,7 @@ import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_VOTE_AVERAGE;
 /**
  * Created by Ragnar on 8/30/2015.
  */
-public class ItemGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>,SortListener {
+public class ItemGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>, SortListener {
 
 
     private JsonObjectRequest mJsObjRequest;
@@ -106,15 +107,14 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.i("GRID", "Fragment - onActivityCreated");
+        updateMovies();
         getLoaderManager().initLoader(0, null, this);
-
     }
 
     @Override
     public void onStart() {
         super.onStart();
         Log.i("GRID", "Fragment - onStart");
-        updateMovies();
     }
 
     @Override
@@ -125,14 +125,44 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.i("GRID", "Fragment - onCreateLoader");
-        CursorLoader loader = new CursorLoader(getActivity(),
-                MovieContract.MovieEntry.CONTENT_URI,
-                new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
-                null,
-                null,
-                null);
 
+        CursorLoader loader = null;
+
+        switch (id) {
+
+            case 0:
+                Log.i("GRID", "Fragment - onCreateLoader 0");
+                loader = new CursorLoader(getActivity(),
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
+                        null,
+                        null,
+                        MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY + " DESC LIMIT 20");
+                break;
+
+            case 1:
+
+                Log.i("GRID", "Fragment - onCreateLoader 1");
+                loader = new CursorLoader(getActivity(),
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
+                        null,
+                        null,
+                        MovieContract.MovieEntry.COLUMN_RATING + " DESC LIMIT 20");
+
+                break;
+
+            case 2:
+
+                Log.i("GRID", "Fragment - onCreateLoader 2");
+                loader = new CursorLoader(getActivity(),
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
+                        MovieContract.MovieEntry.COLUMN_IS_FAVORITE + " = ?",
+                        new String[]{String.valueOf(1)},
+                        null);
+                break;
+        }
         return loader;
     }
 
@@ -166,10 +196,10 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                 new String[]{String.valueOf(id)},
                 null);
 
-        if (movieCursor == null || !movieCursor.moveToFirst()){
+        if (movieCursor == null || !movieCursor.moveToFirst()) {
 
             Log.d("INTENT", "POLE MIDAGI SEES");
-        }else {
+        } else {
             Log.d("INTENT", "position" + movieCursor.getPosition());
             Log.d("INTENT", "columns" + movieCursor.getColumnCount());
             Log.d("INTENT", "count" + movieCursor.getCount());
@@ -177,17 +207,21 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
         }
 
         int titleIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE);
+        int IdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID);
         int pathIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_PATH);
         int overviewIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW);
         int ratingIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING);
         int dateIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_DATE);
+        int favoriteIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IS_FAVORITE);
 
         Intent intent = new Intent(getActivity(), MovieDetailActivity.class);
         intent.putExtra(Constants.EXTRA_TITLE, movieCursor.getString(titleIndex));
+        intent.putExtra(Constants.EXTRA_ID, movieCursor.getInt(IdIndex));
         intent.putExtra(Constants.EXTRA_PATH, movieCursor.getString(pathIndex));
         intent.putExtra(Constants.EXTRA_OVERVIEW, movieCursor.getString(overviewIndex));
         intent.putExtra(Constants.EXTRA_RATING, movieCursor.getDouble(ratingIndex));
         intent.putExtra(Constants.EXTRA_DATE, movieCursor.getString(dateIndex));
+        intent.putExtra(Constants.EXTRA_IS_FAVORITE, movieCursor.getInt(favoriteIndex));
         getActivity().startActivity(intent);
 
         if (null != mListener) {
@@ -267,6 +301,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                         String overview = Constants.NA;
                         double average = -1;
                         String release = Constants.NA;
+                        double popularity = -1;
 
                         JSONObject movie = jsonArray.getJSONObject(i);
 
@@ -303,13 +338,18 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                             release = movie.getString(KEY_RELEASE_DATE);
                         }
 
+                        if (movie.has(KEY_POPULARITY) && !movie.isNull(KEY_POPULARITY)) {
+
+                            popularity = movie.getDouble(KEY_POPULARITY);
+                        }
+
 
                         // If movie does not have title or id do not but it to the movies list
                         if (id != -1 && !title.equals(Constants.NA)) {
 
-                            long dbMovieId = addMovie(id, title, posterPath, overview, average, release);
+                            Log.d("DB", "popularity: " + popularity);
+                            long dbMovieId = addMovie(id, title, posterPath, overview, average, release, popularity);
 
-                            Log.d("DB", dbMovieId + "");
 
                         }
                     }
@@ -322,20 +362,33 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
     }
 
-    private long addMovie(long remoteMovieId, String title, String posterImagePath, String overview, double rating, String releasDate) {
+    private long addMovie(long remoteMovieId, String title, String posterImagePath, String overview, double rating, String releasDate, double popularity) {
 
 
         long movieId = 0;
-
+       String[] where = {MovieContract.MovieEntry._ID};
 
         Cursor movieCursor = getActivity().getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,                      // SELECT ID FROM MOVIE WHERE remote_movie_id = remoteMovieId;
-                new String[]{MovieContract.MovieEntry._ID},
+                where,
                 MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
                 new String[]{String.valueOf(remoteMovieId)},
                 null);
 
         if (movieCursor.moveToFirst()) {
+
+            ContentValues updateValue = new ContentValues();
+            updateValue.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, popularity);
+            updateValue.put(MovieContract.MovieEntry.COLUMN_RATING, rating);
+
+            int rowUpdated = getActivity().getContentResolver().update(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    updateValue,
+                    MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
+                    new String[]{String.valueOf(remoteMovieId)});
+
+            Log.d("DB", rowUpdated + " UPDATED");
+
             int movieIdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
             movieId = movieCursor.getLong(movieIdIndex);
             Log.d("DB", movieId + " is already in db");
@@ -352,6 +405,8 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
             movieValues.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, overview);
             movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, rating);
             movieValues.put(MovieContract.MovieEntry.COLUMN_DATE, releasDate);
+            movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, popularity);
+            movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_TAG, "popular");
             movieValues.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 0);
 
             // Finally, insert movie data into the database.
@@ -374,12 +429,23 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
     @Override
     public void onSortByPopular() {
-        Toast.makeText(getActivity(),"onSortByPopular", Toast.LENGTH_SHORT).show();
-        updateMovies();
+        Toast.makeText(getActivity(), "Sorted by Popularity", Toast.LENGTH_SHORT).show();
+        getLoaderManager().initLoader(0, null, this);
+
+
     }
 
     @Override
     public void onSortByRating() {
-        Toast.makeText(getActivity(),"onSortByRating", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(), "Sorted by Rating", Toast.LENGTH_SHORT).show();
+        getLoaderManager().initLoader(1, null, this);
+    }
+
+    @Override
+    public void onSortByFavorites() {
+
+        Toast.makeText(getActivity(), "Sorted by Favorites", Toast.LENGTH_SHORT).show();
+        getLoaderManager().initLoader(2, null, this);
+
     }
 }

@@ -11,5 +11,6 @@
     <string name="loading">Loading...</string>
     <string name="error_timeout">Connection could not established</string>
     <string name="popular_movies_title">Popular Movies</string>
-    <string name="kids_movies_title">Kids Movies</string>
+    <string name="most_rated_title">Most Rated Movies</string>
+    <string name="favorites_title">Favorite Movies</string>
 </resources>

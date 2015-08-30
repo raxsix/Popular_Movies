@@ -1,9 +1,12 @@
 package eu.raxsix.popularmovies;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,6 +19,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 
@@ -31,6 +35,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     private ImageLoader mImageLoader;
     private VolleySingleton mVolleySingleton;
     private TextView mOverview;
+    private CheckBox mCheckBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +57,8 @@ public class MovieDetailActivity extends AppCompatActivity {
         String date = intent.getStringExtra(Constants.EXTRA_DATE);
         String overview = intent.getStringExtra(Constants.EXTRA_OVERVIEW);
         Double rating = intent.getDoubleExtra(Constants.EXTRA_RATING, 0);
+        int favorite = intent.getIntExtra(Constants.EXTRA_IS_FAVORITE, 0);
+        final int remoteMovieId = intent.getIntExtra(Constants.EXTRA_ID, 0);
 
 
         // Get the references for the widgets
@@ -60,9 +67,39 @@ public class MovieDetailActivity extends AppCompatActivity {
         mReleaseDate = (TextView) findViewById(R.id.releaseTextView);
         mRating = (TextView) findViewById(R.id.ratingTextView);
         mOverview = (TextView) findViewById(R.id.overviewTextView);
+        mCheckBox = (CheckBox) findViewById(R.id.favoriteCheckBox);
 
         // Set the title
         mTitle.setText(title);
+
+        if (favorite == 0) {
+            mCheckBox.setChecked(false);
+        } else {
+            mCheckBox.setChecked(true);
+        }
+
+        mCheckBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                int listen = 0;
+
+                if (mCheckBox.isChecked()) {
+                    listen = 1;
+                }
+                ContentValues updateValue = new ContentValues();
+                updateValue.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, listen);
+
+
+                getContentResolver().update(
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        updateValue,
+                        MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
+                        new String[]{String.valueOf(remoteMovieId)});
+
+            }
+        });
+
 
         // Set the overview
         mOverview.setText(overview);

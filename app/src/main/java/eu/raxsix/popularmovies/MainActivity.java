@@ -14,7 +14,6 @@ import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
 import eu.raxsix.popularmovies.Interfaces.OnFragmentInteractionListener;
 import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.fragments.ItemGridFragment;
-import eu.raxsix.popularmovies.fragments.PosterFragment;
 
 /**
  * NB! First thing you have to do is but your movies API key to
@@ -79,13 +78,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rated_sort.setTag(Constants.TAG_SORT_RATING);
         rated_sort.setOnClickListener(this);
 
+        // Building up kids movies button
+        ImageView favoriteImage = new ImageView(this);
+        favoriteImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
+        SubActionButton favorite_sort = itemBuilder.setContentView(favoriteImage).build();
+        // Setting tag for this button to help manage click event
+        favorite_sort.setTag(Constants.TAG_SORT_FAVORITES);
+        favorite_sort.setOnClickListener(this);
+
         // Putting the menu together
         new FloatingActionMenu.Builder(this)
                 .setRadius(200)
                 .setStartAngle(180)
-                .setEndAngle(230)
+                .setEndAngle(280)
                 .addSubActionView(popular_sort)
                 .addSubActionView(rated_sort)
+                .addSubActionView(favorite_sort)
                 .attachTo(actionButton)
                 .build();
 
@@ -114,7 +122,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (v.getTag().equals(Constants.TAG_SORT_RATING)) {
 
             fragment.onSortByRating();
-            setActionBarTitle(getString(R.string.kids_movies_title));
+            setActionBarTitle(getString(R.string.most_rated_title));
+
+        }
+
+        if (v.getTag().equals(Constants.TAG_SORT_FAVORITES)) {
+
+            fragment.onSortByFavorites();
+            setActionBarTitle(getString(R.string.favorites_title));
 
         }
     }

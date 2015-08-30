@@ -31,32 +31,56 @@
             android:layout_below="@+id/titleTextView"
             android:layout_marginTop="10dp" />
 
-        <TextView
-            android:id="@+id/releaseTextView"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@+id/posterImageView"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="51dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:layout_toRightOf="@+id/posterImageView"
+            android:layout_toEndOf="@+id/posterImageView"
+            android:orientation="vertical"
+            android:id="@+id/linearLayout">
 
-        <TextView
-            android:id="@+id/ratingTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/releaseTextView"
-            android:layout_alignStart="@+id/releaseTextView"
-            android:layout_below="@+id/releaseTextView"
-            android:layout_marginTop="41dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            <TextView
+                android:id="@+id/releaseTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+               android:paddingTop="30dp"
+                android:layout_alignTop="@+id/posterImageView"
+                android:text="2015"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/ratingTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:text="rating"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <CheckBox
+                android:id="@+id/favoriteCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Favorite"
+                android:textStyle="bold"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@android:color/holo_blue_dark"
+                android:checked="false" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/overviewTextView"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/posterImageView"
             android:padding="10dp"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:text="asdfasdfasdfasdfhlkjasdfhas"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/posterImageView"
+            android:layout_alignParentStart="true" />
 
 
     </RelativeLayout>
