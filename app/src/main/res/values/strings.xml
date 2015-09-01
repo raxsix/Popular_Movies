@@ -14,4 +14,5 @@
     <string name="most_rated_title">Most Rated Movies</string>
     <string name="favorites_title">Favorite Movies</string>
     <string name="trailers_title">Trailers:</string>
+    <string name="review_title">Reviews</string>
 </resources>

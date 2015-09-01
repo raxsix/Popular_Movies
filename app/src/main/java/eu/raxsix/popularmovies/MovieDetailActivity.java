@@ -1,6 +1,5 @@
 package eu.raxsix.popularmovies;
 
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
@@ -43,7 +42,11 @@ import eu.raxsix.popularmovies.network.VolleySingleton;
 
 import static eu.raxsix.popularmovies.extras.Constants.BASE_URL;
 import static eu.raxsix.popularmovies.extras.Constants.IMAGE_SIZE;
+import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_REVIEW;
+import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_TRAILER;
+import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_PREVIEW_CONTENT;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_RESULTS;
+import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_REVIEW_AUTHOR;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_NAME;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_SITE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_SIZE;
@@ -57,6 +60,7 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
     private TextView mTitle;
     private TextView mReleaseDate;
     private TextView mRating;
+    private TextView mReviewTextView;
     private ImageView mPosterImageView;
     private ImageLoader mImageLoader;
     private VolleySingleton mVolleySingleton;
@@ -68,6 +72,9 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
     private ListView mListView;
     private ProgressDialog mDialog;
     private Cursor mSetTrailerCursor;
+
+    private JsonObjectRequest mTrailerRequest;
+    JsonObjectRequest mReviewRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +122,7 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
         mReleaseDate = (TextView) findViewById(R.id.releaseTextView);
         mRating = (TextView) findViewById(R.id.ratingTextView);
         mOverview = (TextView) findViewById(R.id.overviewTextView);
+        mReviewTextView = (TextView) findViewById(R.id.reviewTextView);
         mCheckBox = (CheckBox) findViewById(R.id.favoriteCheckBox);
         mListView = (ListView) findViewById(R.id.trailersListView);
 
@@ -191,8 +199,8 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
 
         getTrailerInfo();
 
+        getReviewInfo();
     }
-
 
 
     private void getTrailerInfo() {
@@ -200,12 +208,12 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
 
         String trailerUrl = Constants.MOVIE_TRAILER_BASE_URL + mRemoteMovieId + "/videos?api_key=" + ApiKey.API_KEY;
 
-        JsonObjectRequest trailerRequest = new JsonObjectRequest(Request.Method.GET, trailerUrl, new Response.Listener<JSONObject>() {
+        mTrailerRequest = new JsonObjectRequest(Request.Method.GET, trailerUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Log.d(TAG, "onResponse was called");
+                Log.d(TAG, "trailer onResponse was called");
                 // Parse the response
-                parseJsonResponse(response);
+                parseJsonResponse(response, mTrailerRequest.getTag().toString());
 
                 setTrailerInfo();
 
@@ -222,9 +230,74 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
             }
         });
 
+        mTrailerRequest.setTag(TAG_REQUEST_TRAILER);
         // Add the request to the RequestQueue.
-        mRequestQueue.add(trailerRequest);
+        mRequestQueue.add(mTrailerRequest);
 
+    }
+
+    private void getReviewInfo() {
+        Log.d(TAG, "getReviewInfo was called");
+
+        String reviewUrl = Constants.MOVIE_REVIEW_BASE_URL + mRemoteMovieId + "/reviews?api_key=" + ApiKey.API_KEY;
+
+        mReviewRequest = new JsonObjectRequest(Request.Method.GET, reviewUrl, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d(TAG, "Review onResponse was called");
+                // Parse the response
+                parseJsonResponse(response, mReviewRequest.getTag().toString());
+
+                setReviewInfo();
+
+                mDialog.hide();
+
+            }
+
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+                mDialog.hide();
+
+            }
+        });
+
+        mReviewRequest.setTag(TAG_REQUEST_REVIEW);
+        // Add the request to the RequestQueue.
+        mRequestQueue.add(mReviewRequest);
+
+    }
+
+    private void setReviewInfo() {
+
+        Log.d(TAG, "setReviewInfo was called");
+        StringBuilder sb = new StringBuilder();
+
+        Cursor cursor = getContentResolver().query(
+                MovieContract.ReviewEntry.CONTENT_URI,
+                null,
+                MovieContract.ReviewEntry.COLUMN_MOVIE_KEY + " = ?",
+                new String[]{String.valueOf(mLocalMovieId)},
+                null);
+
+        while (cursor.moveToNext()){
+
+            int authorIndex = cursor.getColumnIndex(MovieContract.ReviewEntry.COLUMN_AUTHOR);
+            Log.d(TAG, "authorIndex: "+ authorIndex);
+            int contentIndex = cursor.getColumnIndex(MovieContract.ReviewEntry.COLUMN_CONTENT);
+            Log.d(TAG, "contentIndex: " + contentIndex);
+
+            sb.append("\n");
+            sb.append(cursor.getString(authorIndex));
+            sb.append("\n");
+            sb.append(cursor.getString(contentIndex));
+            sb.append("\n");
+        }
+
+            mReviewTextView.setText(sb);
+
+        cursor.close();
     }
 
     @Override
@@ -242,7 +315,7 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
         return super.onOptionsItemSelected(item);
     }
 
-    private void parseJsonResponse(JSONObject response) {
+    private void parseJsonResponse(JSONObject response, String tag) {
         Log.d(TAG, "parseJsonResponse was called");
         if (response != null && response.length() > 0) {
 
@@ -255,50 +328,81 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
 
                     for (int i = 0; i < jsonArray.length(); i++) {
 
-                        // Given a default values for json keys to avoid JSONException when key is null or not there
-                        String youtubeKey = Constants.NA;
-                        String name = Constants.NA;
-                        String site = Constants.NA;
-                        int size = -1;
-                        String type = Constants.NA;
+                        if (tag.equals(TAG_REQUEST_TRAILER)) {
+
+                            // Given a default values for json keys to avoid JSONException when key is null or not there
+                            String youtubeKey = Constants.NA;
+                            String name = Constants.NA;
+                            String site = Constants.NA;
+                            int size = -1;
+                            String type = Constants.NA;
+
+                            JSONObject movie = jsonArray.getJSONObject(i);
 
 
-                        JSONObject movie = jsonArray.getJSONObject(i);
+                            if (movie.has(KEY_YOUTUBE_KEY) && !movie.isNull(KEY_YOUTUBE_KEY)) {
 
 
-                        if (movie.has(KEY_YOUTUBE_KEY) && !movie.isNull(KEY_YOUTUBE_KEY)) {
+                                youtubeKey = movie.getString(KEY_YOUTUBE_KEY);
+                            }
+
+                            if (movie.has(KEY_TRAILER_NAME) && !movie.isNull(KEY_TRAILER_NAME)) {
 
 
-                            youtubeKey = movie.getString(KEY_YOUTUBE_KEY);
+                                name = movie.getString(KEY_TRAILER_NAME);
+                            }
+
+                            if (movie.has(KEY_TRAILER_SITE) && !movie.isNull(KEY_TRAILER_SITE)) {
+
+                                site = movie.getString(KEY_TRAILER_SITE);
+                            }
+
+                            if (movie.has(KEY_TRAILER_SIZE) && !movie.isNull(KEY_TRAILER_SIZE)) {
+
+                                size = movie.getInt(KEY_TRAILER_SIZE);
+                            }
+
+                            if (movie.has(KEY_TRAILER_TYPE) && !movie.isNull(KEY_TRAILER_TYPE)) {
+
+                                type = movie.getString(KEY_TRAILER_TYPE);
+                            }
+
+
+                            // If trailer does not have youtube key do not but it to the db
+                            if (!youtubeKey.equals(Constants.NA)) {
+
+                                addTrailerToDatabase(youtubeKey, name, site, size, type);
+                            }
+                        } else {
+
+                            // Given a default values for json keys to avoid JSONException when key is null or not there
+
+                            String author = Constants.NA;
+                            String content = Constants.NA;
+
+                            JSONObject movie = jsonArray.getJSONObject(i);
+
+
+                            if (movie.has(KEY_REVIEW_AUTHOR) && !movie.isNull(KEY_REVIEW_AUTHOR)) {
+
+                                author = movie.getString(KEY_REVIEW_AUTHOR);
+                            }
+
+                            if (movie.has(KEY_PREVIEW_CONTENT) && !movie.isNull(KEY_PREVIEW_CONTENT)) {
+
+                                content = movie.getString(KEY_PREVIEW_CONTENT);
+                            }
+
+
+                            // If trailer does not have youtube key do not but it to the db
+                            if (!content.equals(Constants.NA) && !author.equals(Constants.NA)) {
+
+                                addReviewsToDatabase(author, content);
+                            }
+
                         }
 
-                        if (movie.has(KEY_TRAILER_NAME) && !movie.isNull(KEY_TRAILER_NAME)) {
 
-
-                            name = movie.getString(KEY_TRAILER_NAME);
-                        }
-
-                        if (movie.has(KEY_TRAILER_SITE) && !movie.isNull(KEY_TRAILER_SITE)) {
-
-                            site = movie.getString(KEY_TRAILER_SITE);
-                        }
-
-                        if (movie.has(KEY_TRAILER_SIZE) && !movie.isNull(KEY_TRAILER_SIZE)) {
-
-                            size = movie.getInt(KEY_TRAILER_SIZE);
-                        }
-
-                        if (movie.has(KEY_TRAILER_TYPE) && !movie.isNull(KEY_TRAILER_TYPE)) {
-
-                            type = movie.getString(KEY_TRAILER_TYPE);
-                        }
-
-
-                        // If trailer does not have youtube key do not but it to the db
-                        if (!youtubeKey.equals(Constants.NA)) {
-
-                            addTrailerToDatabase(youtubeKey, name, site, size, type);
-                        }
                     }
                 }
 
@@ -306,6 +410,38 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
                 e.printStackTrace();
             }
         }
+    }
+
+    private void addReviewsToDatabase(String author, String content) {
+
+        Log.d(TAG, "addReviewsToDatabase was called");
+
+        String[] columns = {MovieContract.ReviewEntry.COLUMN_AUTHOR};
+
+        Cursor reviewCursor = getContentResolver().query(
+                MovieContract.ReviewEntry.CONTENT_URI,
+                columns,
+                MovieContract.ReviewEntry.COLUMN_AUTHOR + " = ?",
+                new String[]{String.valueOf(author)},
+                null);
+
+        if (!reviewCursor.moveToFirst()) {
+
+            ContentValues reviewValues = new ContentValues();
+
+            reviewValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, mLocalMovieId);
+            Log.d(TAG, mLocalMovieId + "");
+            reviewValues.put(MovieContract.ReviewEntry.COLUMN_AUTHOR, author);
+            Log.d(TAG, author + "");
+            reviewValues.put(MovieContract.ReviewEntry.COLUMN_CONTENT, content);
+            Log.d(TAG, content + "");
+
+            getContentResolver().insert(
+                    MovieContract.ReviewEntry.CONTENT_URI,
+                    reviewValues);
+        }
+
+        reviewCursor.close();
     }
 
     private void addTrailerToDatabase(String youtubeKey, String name, String site, int size, String type) {
@@ -342,6 +478,7 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
                     MovieContract.TrailerEntry.CONTENT_URI,
                     trailerValues);
         }
+        trailerCursor.close();
     }
 
     private void setTrailerInfo() {
@@ -384,7 +521,7 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
                 new String[]{String.valueOf(id)},
                 null);
 
-        if (trailerCursor.moveToFirst()){
+        if (trailerCursor.moveToFirst()) {
 
             int youtubeKeyIndex = trailerCursor.getColumnIndex(MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY);
 
@@ -397,17 +534,19 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
             watchYoutubeVideo(youtubeKey);
         }
 
+        trailerCursor.close();
+
 
     }
 
-    private void watchYoutubeVideo(String id){
+    private void watchYoutubeVideo(String id) {
 
-        try{
+        try {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
             startActivity(intent);
-        }catch (ActivityNotFoundException ex){
-            Intent intent=new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("http://www.youtube.com/watch?v="+id));
+        } catch (ActivityNotFoundException ex) {
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("http://www.youtube.com/watch?v=" + id));
             startActivity(intent);
         }
     }

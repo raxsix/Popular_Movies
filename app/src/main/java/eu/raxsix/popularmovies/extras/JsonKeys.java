@@ -19,4 +19,7 @@ public interface JsonKeys {
     String KEY_TRAILER_SITE = "site";
     String KEY_TRAILER_SIZE = "size";
     String KEY_TRAILER_TYPE = "type";
+
+    String KEY_REVIEW_AUTHOR = "author";
+    String KEY_PREVIEW_CONTENT = "content";
 }
