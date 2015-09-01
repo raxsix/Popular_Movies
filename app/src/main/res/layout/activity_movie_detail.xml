@@ -32,21 +32,21 @@
             android:layout_marginTop="10dp" />
 
         <LinearLayout
+            android:id="@+id/linearLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@+id/posterImageView"
-            android:layout_toRightOf="@+id/posterImageView"
             android:layout_toEndOf="@+id/posterImageView"
-            android:orientation="vertical"
-            android:id="@+id/linearLayout">
+            android:layout_toRightOf="@+id/posterImageView"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/releaseTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-               android:paddingTop="30dp"
                 android:layout_alignTop="@+id/posterImageView"
+                android:layout_margin="5dp"
+                android:paddingTop="30dp"
                 android:text="2015"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -62,26 +62,57 @@
                 android:id="@+id/favoriteCheckBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:checked="false"
                 android:text="Favorite"
-                android:textStyle="bold"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="@android:color/holo_blue_dark"
-                android:checked="false" />
+                android:textStyle="bold" />
 
         </LinearLayout>
+
 
         <TextView
             android:id="@+id/overviewTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/posterImageView"
             android:padding="10dp"
             android:text="asdfasdfasdfasdfhlkjasdfhas"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/posterImageView"
-            android:layout_alignParentStart="true" />
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
+        <TextView
+            android:id="@+id/line"
+            android:layout_width="match_parent"
+            android:layout_height="2dip"
+            android:layout_below="@id/overviewTextView"
+            android:background="@android:color/holo_blue_dark" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_marginTop="10dp"
+            android:id="@+id/trailerTextView"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/line"
+            android:layout_marginBottom="10dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/trailers_title" />
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:id="@+id/trailersListView"
+            android:layout_below="@+id/trailerTextView"
+            android:layout_alignParentLeft="true"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/textView"
+            android:layout_below="@+id/trailersListView"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
 
     </RelativeLayout>
 </ScrollView>

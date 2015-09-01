@@ -181,12 +181,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        Log.d("INTENT", "position: " + position);
-        Log.d("INTENT", "id: " + id);
-
         Uri uri = MovieContract.MovieEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build();
-
-        Log.d("INTENT", "uri: " + uri);
 
         // SELECT * FROM MOVIE WHERE _id = position
         Cursor movieCursor = getActivity().getContentResolver().query(
@@ -198,30 +193,46 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
         if (movieCursor == null || !movieCursor.moveToFirst()) {
 
-            Log.d("INTENT", "POLE MIDAGI SEES");
         } else {
-            Log.d("INTENT", "position" + movieCursor.getPosition());
-            Log.d("INTENT", "columns" + movieCursor.getColumnCount());
-            Log.d("INTENT", "count" + movieCursor.getCount());
 
         }
 
+        int idIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
+        Log.d("MOVIE", idIndex + "");
         int titleIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE);
-        int IdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID);
+        Log.d("MOVIE", titleIndex + "");
+        int remoteIdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID);
+        Log.d("MOVIE", remoteIdIndex + "");
         int pathIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_PATH);
+        Log.d("MOVIE", pathIndex + "");
         int overviewIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW);
+        Log.d("MOVIE", overviewIndex + "");
         int ratingIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING);
+        Log.d("MOVIE", ratingIndex + "");
         int dateIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_DATE);
+        Log.d("MOVIE", dateIndex + "");
         int favoriteIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IS_FAVORITE);
+        Log.d("MOVIE", favoriteIndex + "");
+
 
         Intent intent = new Intent(getActivity(), MovieDetailActivity.class);
+
+        intent.putExtra(Constants.EXTRA_LOCAL_ID, movieCursor.getInt(idIndex));
+        Log.d("MOVIE", movieCursor.getInt(idIndex) + "");
         intent.putExtra(Constants.EXTRA_TITLE, movieCursor.getString(titleIndex));
-        intent.putExtra(Constants.EXTRA_ID, movieCursor.getInt(IdIndex));
+        Log.d("MOVIE",  movieCursor.getString(titleIndex) + "");
+        intent.putExtra(Constants.EXTRA_REMOTE_ID, movieCursor.getInt(remoteIdIndex));
+        Log.d("MOVIE", movieCursor.getInt(remoteIdIndex) + "");
         intent.putExtra(Constants.EXTRA_PATH, movieCursor.getString(pathIndex));
+        Log.d("MOVIE", movieCursor.getString(pathIndex) + "");
         intent.putExtra(Constants.EXTRA_OVERVIEW, movieCursor.getString(overviewIndex));
+        Log.d("MOVIE", movieCursor.getString(overviewIndex) + "");
         intent.putExtra(Constants.EXTRA_RATING, movieCursor.getDouble(ratingIndex));
+        Log.d("MOVIE", movieCursor.getDouble(ratingIndex) + "");
         intent.putExtra(Constants.EXTRA_DATE, movieCursor.getString(dateIndex));
+        Log.d("MOVIE", movieCursor.getString(dateIndex) + "");
         intent.putExtra(Constants.EXTRA_IS_FAVORITE, movieCursor.getInt(favoriteIndex));
+        Log.d("MOVIE", movieCursor.getInt(favoriteIndex) + "");
         getActivity().startActivity(intent);
 
         if (null != mListener) {
@@ -366,7 +377,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
 
         long movieId = 0;
-       String[] where = {MovieContract.MovieEntry._ID};
+        String[] where = {MovieContract.MovieEntry._ID};
 
         Cursor movieCursor = getActivity().getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,                      // SELECT ID FROM MOVIE WHERE remote_movie_id = remoteMovieId;
@@ -381,17 +392,15 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
             updateValue.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, popularity);
             updateValue.put(MovieContract.MovieEntry.COLUMN_RATING, rating);
 
-            int rowUpdated = getActivity().getContentResolver().update(
+            getActivity().getContentResolver().update(
                     MovieContract.MovieEntry.CONTENT_URI,
                     updateValue,
                     MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
                     new String[]{String.valueOf(remoteMovieId)});
 
-            Log.d("DB", rowUpdated + " UPDATED");
-
             int movieIdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
             movieId = movieCursor.getLong(movieIdIndex);
-            Log.d("DB", movieId + " is already in db");
+
         } else {
             // Now that the content provider is set up, inserting rows of data is pretty simple.
             // First create a ContentValues object to hold the data you want to insert.
@@ -409,6 +418,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
             movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_TAG, "popular");
             movieValues.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, 0);
 
+
             // Finally, insert movie data into the database.
             Uri insertedUri = getActivity().getContentResolver().insert(
                     MovieContract.MovieEntry.CONTENT_URI,
@@ -417,10 +427,10 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
             // The resulting URI contains the ID for the row.  Extract the movieId from the Uri.
             movieId = ContentUris.parseId(insertedUri);
-            Log.d("DB", movieId + " first time inserted to db");
         }
 
         movieCursor.close();
+
         // Wait, that worked?  Yes!
         return movieId;
 

@@ -13,4 +13,10 @@ public interface JsonKeys {
     String KEY_VOTE_AVERAGE = "vote_average";
     String KEY_RELEASE_DATE = "release_date";
     String KEY_POPULARITY = "popularity";
+
+    String KEY_YOUTUBE_KEY = "key";
+    String KEY_TRAILER_NAME = "name";
+    String KEY_TRAILER_SITE = "site";
+    String KEY_TRAILER_SIZE = "size";
+    String KEY_TRAILER_TYPE = "type";
 }
