@@ -42,5 +42,6 @@ public class TrailerCursorAdapter extends CursorAdapter {
         String data = cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.TrailerEntry.COLUMN_NAME));
 
         trailerName.setText(data);
+
     }
 }

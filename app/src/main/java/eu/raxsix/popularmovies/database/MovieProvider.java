@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.util.Log;
 
 /**
  * Created by Ragnar on 8/28/2015.
@@ -35,7 +36,7 @@ public class MovieProvider extends ContentProvider {
         matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#", MOVIE_WITH_ID);
         matcher.addURI(authority, MovieContract.PATH_TRAILER, TRAILER);
         matcher.addURI(authority, MovieContract.PATH_REVIEW, REVIEW);
-        matcher.addURI(authority, MovieContract.PATH_TRAILER + "/#", MOVIE_WITH_TRAILER);
+        matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", MOVIE_WITH_TRAILER);
         matcher.addURI(authority, MovieContract.PATH_TRAILER + "/#", MOVIE_WITH_REVIEW);
 
         return matcher;
@@ -118,6 +119,8 @@ public class MovieProvider extends ContentProvider {
             }
 
             case TRAILER: {
+
+                Log.i("Helper", "TRAILER");
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.TrailerEntry.TABLE_NAME,
                         projection,
@@ -144,10 +147,15 @@ public class MovieProvider extends ContentProvider {
             }
 
             case MOVIE_WITH_TRAILER: {
+
+                String[] columns = {MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY};
+                String id = MovieContract.getIdFromUri(uri);
+
+                Log.i("Helper", "MOVIE_WITH_TRAILER");
                 retCursor = sMovieWithTrailerQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-                        projection,
-                        selection,
-                        selectionArgs,
+                        columns,
+                        MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY + " = ?",
+                        new String[]{id},
                         null,
                         null,
                         sortOrder

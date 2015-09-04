@@ -107,8 +107,11 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.i("GRID", "Fragment - onActivityCreated");
+
         updateMovies();
+
         getLoaderManager().initLoader(0, null, this);
+
     }
 
     @Override
@@ -163,6 +166,8 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                         null);
                 break;
         }
+
+
         return loader;
     }
 
@@ -170,6 +175,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.swapCursor(data);
+
     }
 
     @Override
@@ -191,54 +197,24 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                 new String[]{String.valueOf(id)},
                 null);
 
-        if (movieCursor == null || !movieCursor.moveToFirst()) {
+        if (movieCursor != null && movieCursor.moveToFirst()) {
 
-        } else {
-
-        }
-
-        int idIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
-        Log.d("MOVIE", idIndex + "");
-        int titleIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE);
-        Log.d("MOVIE", titleIndex + "");
-        int remoteIdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID);
-        Log.d("MOVIE", remoteIdIndex + "");
-        int pathIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_PATH);
-        Log.d("MOVIE", pathIndex + "");
-        int overviewIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW);
-        Log.d("MOVIE", overviewIndex + "");
-        int ratingIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING);
-        Log.d("MOVIE", ratingIndex + "");
-        int dateIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_DATE);
-        Log.d("MOVIE", dateIndex + "");
-        int favoriteIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IS_FAVORITE);
-        Log.d("MOVIE", favoriteIndex + "");
+            int idIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
+            int remoteIdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID);
 
 
-        Intent intent = new Intent(getActivity(), MovieDetailActivity.class);
+            Intent intent = new Intent(getActivity(), MovieDetailActivity.class);
 
-        intent.putExtra(Constants.EXTRA_LOCAL_ID, movieCursor.getInt(idIndex));
-        Log.d("MOVIE", movieCursor.getInt(idIndex) + "");
-        intent.putExtra(Constants.EXTRA_TITLE, movieCursor.getString(titleIndex));
-        Log.d("MOVIE",  movieCursor.getString(titleIndex) + "");
-        intent.putExtra(Constants.EXTRA_REMOTE_ID, movieCursor.getInt(remoteIdIndex));
-        Log.d("MOVIE", movieCursor.getInt(remoteIdIndex) + "");
-        intent.putExtra(Constants.EXTRA_PATH, movieCursor.getString(pathIndex));
-        Log.d("MOVIE", movieCursor.getString(pathIndex) + "");
-        intent.putExtra(Constants.EXTRA_OVERVIEW, movieCursor.getString(overviewIndex));
-        Log.d("MOVIE", movieCursor.getString(overviewIndex) + "");
-        intent.putExtra(Constants.EXTRA_RATING, movieCursor.getDouble(ratingIndex));
-        Log.d("MOVIE", movieCursor.getDouble(ratingIndex) + "");
-        intent.putExtra(Constants.EXTRA_DATE, movieCursor.getString(dateIndex));
-        Log.d("MOVIE", movieCursor.getString(dateIndex) + "");
-        intent.putExtra(Constants.EXTRA_IS_FAVORITE, movieCursor.getInt(favoriteIndex));
-        Log.d("MOVIE", movieCursor.getInt(favoriteIndex) + "");
-        getActivity().startActivity(intent);
+            intent.putExtra(Constants.EXTRA_LOCAL_ID, movieCursor.getInt(idIndex));
+            intent.putExtra(Constants.EXTRA_REMOTE_ID, movieCursor.getInt(remoteIdIndex));
 
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            mListener.onItemSelected(id);
+            getActivity().startActivity(intent);
+
+            if (null != mListener) {
+                // Notify the active callbacks interface (the activity, if the
+                // fragment is attached to one) that an item has been selected.
+                mListener.onItemSelected(id);
+            }
         }
 
         movieCursor.close();
@@ -246,13 +222,6 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
 
     private void updateMovies() {
-
-
-        mDialog = new ProgressDialog(getActivity());
-
-        mDialog.setMessage(getString(R.string.loading));
-
-        mDialog.show();
 
         // Instantiate the RequestQueue.
         mRequestQueue = VolleySingleton.getsInstance().getRequestQueue();
@@ -268,17 +237,12 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                 mJsObjRequest.setTag(TAG_REQUEST_POPULAR);
 
                 // Parse the response
-                parseJSONResponse(response);
-
-                mDialog.hide();
-
+                parseJsonResponse(response);
 
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
-                mDialog.hide();
 
             }
         });
@@ -292,7 +256,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
      *
      * @param response from Volley response
      */
-    private void parseJSONResponse(JSONObject response) {
+    private void parseJsonResponse(JSONObject response) {
 
         if (response != null && response.length() > 0) {
 
@@ -359,7 +323,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                         if (id != -1 && !title.equals(Constants.NA)) {
 
                             Log.d("DB", "popularity: " + popularity);
-                            long dbMovieId = addMovie(id, title, posterPath, overview, average, release, popularity);
+                            addMovie(id, title, posterPath, overview, average, release, popularity);
 
 
                         }
@@ -375,8 +339,8 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
     private long addMovie(long remoteMovieId, String title, String posterImagePath, String overview, double rating, String releasDate, double popularity) {
 
+        long movieId;
 
-        long movieId = 0;
         String[] where = {MovieContract.MovieEntry._ID};
 
         Cursor movieCursor = getActivity().getContentResolver().query(
@@ -428,10 +392,8 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
             // The resulting URI contains the ID for the row.  Extract the movieId from the Uri.
             movieId = ContentUris.parseId(insertedUri);
         }
-
         movieCursor.close();
 
-        // Wait, that worked?  Yes!
         return movieId;
 
 

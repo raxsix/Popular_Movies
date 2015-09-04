@@ -1,12 +1,16 @@
 package eu.raxsix.popularmovies;
 
-import android.app.ProgressDialog;
+
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
@@ -15,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -40,8 +45,6 @@ import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 
-import static eu.raxsix.popularmovies.extras.Constants.BASE_URL;
-import static eu.raxsix.popularmovies.extras.Constants.IMAGE_SIZE;
 import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_REVIEW;
 import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_TRAILER;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_PREVIEW_CONTENT;
@@ -53,28 +56,33 @@ import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_SIZE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_TYPE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_YOUTUBE_KEY;
 
-public class MovieDetailActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class MovieDetailActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String TAG = MovieDetailActivity.class.getSimpleName();
 
+    public static final int COL_TITLE = 2;
+    public static final int COL_IMAGE_PATH = 3;
+    public static final int COL_DATE = 4;
+    public static final int COL_RATING = 6;
+    public static final int COL_FAVORITE = 7;
+    public static final int COL_OVERVIEW = 9;
+
+    private int mLocalMovieId;
+    private int mRemoteMovieId;
+    private int mFavorite;
     private TextView mTitle;
     private TextView mReleaseDate;
     private TextView mRating;
     private TextView mReviewTextView;
-    private ImageView mPosterImageView;
-    private ImageLoader mImageLoader;
-    private VolleySingleton mVolleySingleton;
-    private RequestQueue mRequestQueue;
+    private ListView mListView;
     private TextView mOverview;
     private CheckBox mCheckBox;
-    private int mRemoteMovieId;
-    private int mLocalMovieId;
-    private ListView mListView;
-    private ProgressDialog mDialog;
-    private Cursor mSetTrailerCursor;
-
+    private ImageView mPosterImageView;
+    private ProgressBar mListProgressBar;
+    private ImageLoader mImageLoader;
+    private RequestQueue mRequestQueue;
     private JsonObjectRequest mTrailerRequest;
-    JsonObjectRequest mReviewRequest;
+    private JsonObjectRequest mReviewRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,39 +90,24 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
         setContentView(R.layout.activity_movie_detail);
         Log.d(TAG, "onCreate was called");
 
-        mDialog = new ProgressDialog(this);
+        Intent intent = getIntent();
+
+        // Extract info from this intent
+        mLocalMovieId = intent.getIntExtra(Constants.EXTRA_LOCAL_ID, -1);
+        mRemoteMovieId = intent.getIntExtra(Constants.EXTRA_REMOTE_ID, -1);
 
         // Show the back button in this activity
+        //noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
         // Get Volley to init ImageLoader for cached images
-        mVolleySingleton = VolleySingleton.getsInstance();
+        VolleySingleton mVolleySingleton = VolleySingleton.getsInstance();
 
         // Instantiate the RequestQueue.
-        mRequestQueue = mVolleySingleton.getsInstance().getRequestQueue();
+        mRequestQueue = VolleySingleton.getsInstance().getRequestQueue();
 
         mImageLoader = mVolleySingleton.getImageLoader();
-
-        Intent intent = getIntent();
-        Log.d("MOVIE", "---------------------------------------------------------");
-        // Extract info from this intent
-        mLocalMovieId = intent.getIntExtra(Constants.EXTRA_LOCAL_ID, -1);
-        Log.d("MOVIE", mLocalMovieId + "");
-        String title = intent.getStringExtra(Constants.EXTRA_TITLE);
-        Log.d("MOVIE", title + "");
-        String posterImageUrl = intent.getStringExtra(Constants.EXTRA_PATH);
-        Log.d("MOVIE", posterImageUrl + "");
-        String date = intent.getStringExtra(Constants.EXTRA_DATE);
-        Log.d("MOVIE", date + "");
-        String overview = intent.getStringExtra(Constants.EXTRA_OVERVIEW);
-        Log.d("MOVIE", overview + "");
-        Double rating = intent.getDoubleExtra(Constants.EXTRA_RATING, 0);
-        Log.d("MOVIE", rating + "");
-        int favorite = intent.getIntExtra(Constants.EXTRA_IS_FAVORITE, 0);
-        Log.d("MOVIE", favorite + "");
-        mRemoteMovieId = intent.getIntExtra(Constants.EXTRA_REMOTE_ID, 0);
-        Log.d("MOVIE", mRemoteMovieId + "");
 
         // Get the references for the widgets
         mTitle = (TextView) findViewById(R.id.titleTextView);
@@ -125,77 +118,9 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
         mReviewTextView = (TextView) findViewById(R.id.reviewTextView);
         mCheckBox = (CheckBox) findViewById(R.id.favoriteCheckBox);
         mListView = (ListView) findViewById(R.id.trailersListView);
+        mListProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        // Set the title
-        mTitle.setText(title);
-
-        if (favorite == 0) {
-            mCheckBox.setChecked(false);
-        } else {
-            mCheckBox.setChecked(true);
-        }
-
-        mCheckBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                int listen = 0;
-
-                if (mCheckBox.isChecked()) {
-                    listen = 1;
-                }
-                ContentValues updateValue = new ContentValues();
-                updateValue.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, listen);
-
-
-                getContentResolver().update(
-                        MovieContract.MovieEntry.CONTENT_URI,
-                        updateValue,
-                        MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
-                        new String[]{String.valueOf(mRemoteMovieId)});
-
-            }
-        });
-
-
-        // Set the overview
-        mOverview.setText(overview);
-
-        // Set the rating
-        mRating.setText(Double.toString(rating) + " / 10");
-
-        // Set the year, take the string and make the Calendar object from it
-        try {
-            Calendar releaseDate = new GregorianCalendar();
-            Date formattedDate = new SimpleDateFormat("yyyy-MM-dd").parse(date);
-            releaseDate.setTime(formattedDate);
-            String year = Integer.toString(releaseDate.get(Calendar.YEAR));
-
-            // Set the year
-            mReleaseDate.setText(year);
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-
-        // Build the poster url
-        String posterUrl = BASE_URL + IMAGE_SIZE + posterImageUrl;
-
-        // Get the image, it should be cached by Volley, not sure for 100%
-        mImageLoader.get(posterUrl, new ImageLoader.ImageListener() {
-            @Override
-            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-
-                // Set the poster
-                mPosterImageView.setImageBitmap(response.getBitmap());
-            }
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-            }
-        });
+        getSupportLoaderManager().initLoader(0, null, this);
 
         getTrailerInfo();
 
@@ -203,7 +128,145 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
     }
 
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        // When press back from action bar then the recyclerview will resume at same position
+        if (id == android.R.id.home) {
+            onBackPressed();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        return new CursorLoader(this,
+                MovieContract.MovieEntry.CONTENT_URI,
+                null,
+                MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
+                new String[]{String.valueOf(mRemoteMovieId)},
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+        if (data != null && data.moveToFirst()) {
+
+            // Set title
+            mTitle.setText(data.getString(COL_TITLE));
+
+            // Set favorite
+            mFavorite = data.getInt(COL_FAVORITE);
+
+
+            if (mFavorite == 0) {
+
+                mCheckBox.setChecked(false);
+            } else {
+                mCheckBox.setChecked(true);
+            }
+
+            mCheckBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if (mCheckBox.isChecked()) {
+                        mFavorite = 1;
+                    } else {
+                        mFavorite = 0;
+                    }
+
+                    ContentValues updateValue = new ContentValues();
+                    updateValue.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, mFavorite);
+
+                    getContentResolver().update(
+                            MovieContract.MovieEntry.CONTENT_URI,
+                            updateValue,
+                            MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID + " = ?",
+                            new String[]{String.valueOf(mRemoteMovieId)});
+
+                }
+            });
+
+
+            String posterImageUrl = data.getString(COL_IMAGE_PATH);
+            Log.d(TAG, posterImageUrl);
+
+
+            // Build the poster url
+            String posterUrl = Constants.BASE_URL + Constants.IMAGE_SIZE + posterImageUrl;
+
+            // Get the image, it should be cached by Volley, not sure for 100%
+            mImageLoader.get(posterUrl, new ImageLoader.ImageListener() {
+                @Override
+                public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+
+                    // Set the poster
+                    mPosterImageView.setImageBitmap(response.getBitmap());
+                }
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            });
+
+            // Building the date
+
+            String date = data.getString(COL_DATE);
+            Log.d(TAG, date + "");
+
+
+            // Set the year
+
+            // Set the year, take the string and make the Calendar object from it
+            try {
+                Calendar releaseDate = new GregorianCalendar();
+                Date formattedDate = new SimpleDateFormat("yyyy-MM-dd").parse(date);
+                releaseDate.setTime(formattedDate);
+                String year = Integer.toString(releaseDate.get(Calendar.YEAR));
+
+                // Set the year
+                mReleaseDate.setText(year);
+
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            // Set overview
+            String overview = data.getString(COL_OVERVIEW);
+            Log.d(TAG, overview + "");
+            mOverview.setText(overview);
+
+
+            Double rating = data.getDouble(COL_RATING);
+            Log.d(TAG, rating + "");
+
+            // Set the rating
+            mRating.setText(Double.toString(rating) + " / 10");
+
+
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+
+
     private void getTrailerInfo() {
+
+        mListProgressBar.setVisibility(View.VISIBLE);
+
         Log.d(TAG, "getTrailerInfo was called");
 
         String trailerUrl = Constants.MOVIE_TRAILER_BASE_URL + mRemoteMovieId + "/videos?api_key=" + ApiKey.API_KEY;
@@ -216,16 +279,13 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
                 parseJsonResponse(response, mTrailerRequest.getTag().toString());
 
                 setTrailerInfo();
-
-                mDialog.hide();
-
+                mListProgressBar.setVisibility(View.INVISIBLE);
             }
 
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
 
-                mDialog.hide();
 
             }
         });
@@ -233,6 +293,27 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
         mTrailerRequest.setTag(TAG_REQUEST_TRAILER);
         // Add the request to the RequestQueue.
         mRequestQueue.add(mTrailerRequest);
+
+    }
+
+    private void setTrailerInfo() {
+
+        Log.d(TAG, "setTrailerInfo was called");
+
+        @SuppressLint("Recycle")
+        Cursor setTrailerCursor = getContentResolver().query(
+                MovieContract.TrailerEntry.CONTENT_URI,
+                null,
+                MovieContract.TrailerEntry.COLUMN_MOVIE_KEY + " = ?",
+                new String[]{String.valueOf(mLocalMovieId)},
+                null);
+
+        // Setup cursor adapter using cursor from last step
+        TrailerCursorAdapter trailerAdapter = new TrailerCursorAdapter(this, setTrailerCursor, 0);
+        // Attach cursor adapter to the ListView
+        mListView.setAdapter(trailerAdapter);
+
+        mListView.setOnItemClickListener(this);
 
     }
 
@@ -250,15 +331,11 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
 
                 setReviewInfo();
 
-                mDialog.hide();
-
             }
 
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
-                mDialog.hide();
 
             }
         });
@@ -281,10 +358,10 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
                 new String[]{String.valueOf(mLocalMovieId)},
                 null);
 
-        while (cursor.moveToNext()){
+        while (cursor.moveToNext()) {
 
             int authorIndex = cursor.getColumnIndex(MovieContract.ReviewEntry.COLUMN_AUTHOR);
-            Log.d(TAG, "authorIndex: "+ authorIndex);
+            Log.d(TAG, "authorIndex: " + authorIndex);
             int contentIndex = cursor.getColumnIndex(MovieContract.ReviewEntry.COLUMN_CONTENT);
             Log.d(TAG, "contentIndex: " + contentIndex);
 
@@ -295,25 +372,12 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
             sb.append("\n");
         }
 
-            mReviewTextView.setText(sb);
+        mReviewTextView.setText(sb);
 
         cursor.close();
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        // When press back from action bar then the recyclerview will resume at same position
-        if (id == android.R.id.home) {
-            onBackPressed();
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     private void parseJsonResponse(JSONObject response, String tag) {
         Log.d(TAG, "parseJsonResponse was called");
@@ -444,17 +508,16 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
         reviewCursor.close();
     }
 
+
     private void addTrailerToDatabase(String youtubeKey, String name, String site, int size, String type) {
 
         Log.d(TAG, "addTrailerToDatabase was called");
 
-        String[] columns = {MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY};
-
         Cursor trailerCursor = getContentResolver().query(
-                MovieContract.TrailerEntry.CONTENT_URI,
-                columns,
-                MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY + " = ?",
-                new String[]{String.valueOf(youtubeKey)},
+                MovieContract.TrailerEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(youtubeKey)).build(),
+                null,
+                null,
+                null,
                 null);
 
         if (!trailerCursor.moveToFirst()) {
@@ -481,31 +544,6 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
         trailerCursor.close();
     }
 
-    private void setTrailerInfo() {
-
-        Log.d(TAG, "setTrailerInfo was called");
-
-        mSetTrailerCursor = getContentResolver().query(
-                MovieContract.TrailerEntry.CONTENT_URI,
-                null,
-                MovieContract.TrailerEntry.COLUMN_MOVIE_KEY + " = ?",
-                new String[]{String.valueOf(mLocalMovieId)},
-                null);
-
-        // Setup cursor adapter using cursor from last step
-        TrailerCursorAdapter trailerAdapter = new TrailerCursorAdapter(this, mSetTrailerCursor, 0);
-        // Attach cursor adapter to the ListView
-        mListView.setAdapter(trailerAdapter);
-
-        mListView.setOnItemClickListener(this);
-
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mSetTrailerCursor.close();
-    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -550,4 +588,6 @@ public class MovieDetailActivity extends AppCompatActivity implements AdapterVie
             startActivity(intent);
         }
     }
+
+
 }
