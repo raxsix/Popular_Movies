@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -33,7 +32,6 @@ import org.json.JSONObject;
 
 import eu.raxsix.popularmovies.Interfaces.OnFragmentInteractionListener;
 import eu.raxsix.popularmovies.Interfaces.SortListener;
-import eu.raxsix.popularmovies.MovieDetailActivity;
 import eu.raxsix.popularmovies.R;
 import eu.raxsix.popularmovies.adapters.GridAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
@@ -57,8 +55,19 @@ import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_VOTE_AVERAGE;
 /**
  * Created by Ragnar on 8/30/2015.
  */
-public class ItemGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>, SortListener {
+public class PosterGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>, SortListener {
 
+    private static final String TAG = PosterGridFragment.class.getSimpleName();
+
+    private int sortOrderId = 0;
+
+    public static final int COL_ID = 0;
+    public static final int COL_TITLE = 2;
+    public static final int COL_IMAGE_PATH = 3;
+    public static final int COL_DATE = 4;
+    public static final int COL_RATING = 6;
+    public static final int COL_FAVORITE = 7;
+    public static final int COL_OVERVIEW = 9;
 
     private JsonObjectRequest mJsObjRequest;
     private TextView mErrorView;
@@ -69,9 +78,10 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     private OnFragmentInteractionListener mListener;
     private GridAdapter adapter;
 
-    public ItemGridFragment() {
+    public PosterGridFragment() {
         // Required empty public constructor
     }
+
 
     @Override
     public void onAttach(Activity activity) {
@@ -82,7 +92,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
         }
-        Log.i("GRID", "Fragment - onAttach");
+        Log.i(TAG, "PosterGridFragment - onAttach");
     }
 
 
@@ -90,15 +100,14 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.i("GRID", "Fragment - onCreateView");
+        Log.i(TAG, "PosterGridFragment - onCreateView");
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_grid, container, false);
 
-        GridView gridview = (GridView) rootView.findViewById(R.id.gridview);
+        GridView gridview = (GridView) rootView.findViewById(R.id.gridView);
         adapter = new GridAdapter(getActivity(), R.layout.fragment_item_grid);
         gridview.setAdapter(adapter);
         gridview.setOnItemClickListener(this);
-
 
         return rootView;
     }
@@ -106,7 +115,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.i("GRID", "Fragment - onActivityCreated");
+        Log.i(TAG, "PosterGridFragment - onActivityCreated");
 
         updateMovies();
 
@@ -117,13 +126,21 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onStart() {
         super.onStart();
-        Log.i("GRID", "Fragment - onStart");
+        Log.i(TAG, "PosterGridFragment - onStart");
     }
 
     @Override
     public void onDetach() {
+
+        Log.i(TAG, "PosterGridFragment - onDetach");
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "PosterGridFragment - onDestroy");
     }
 
     @Override
@@ -134,18 +151,21 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
         switch (id) {
 
             case 0:
-                Log.i("GRID", "Fragment - onCreateLoader 0");
+                Log.i(TAG, "PosterGridFragment - onCreateLoader 0");
+                Log.i(TAG, "PosterGridFragment - onCreateLoader 0 QUERY MOVIES");
                 loader = new CursorLoader(getActivity(),
                         MovieContract.MovieEntry.CONTENT_URI,
                         new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
                         null,
                         null,
                         MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY + " DESC LIMIT 20");
+
                 break;
 
             case 1:
 
-                Log.i("GRID", "Fragment - onCreateLoader 1");
+                Log.i(TAG, "PosterGridFragment - onCreateLoader 1");
+                Log.i(TAG, "PosterGridFragment - onCreateLoader 1 QUERY MOVIES");
                 loader = new CursorLoader(getActivity(),
                         MovieContract.MovieEntry.CONTENT_URI,
                         new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
@@ -157,7 +177,8 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
             case 2:
 
-                Log.i("GRID", "Fragment - onCreateLoader 2");
+                Log.i(TAG, "PosterGridFragment - onCreateLoader 2");
+                Log.i(TAG, "PosterGridFragment - onCreateLoader 2 QUERY MOVIES");
                 loader = new CursorLoader(getActivity(),
                         MovieContract.MovieEntry.CONTENT_URI,
                         new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
@@ -174,54 +195,44 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        adapter.swapCursor(data);
 
+        if (sortOrderId == loader.getId()){
+            adapter.swapCursor(data);
+            Log.i(TAG, "PosterGridFragment - onLoadFinished" + loader.getId());
+        }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+        Log.i(TAG, "PosterGridFragment - onLoaderReset");
         adapter.swapCursor(null);
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        Uri uri = MovieContract.MovieEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build();
+        Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+        if (cursor != null) {
 
-        // SELECT * FROM MOVIE WHERE _id = position
-        Cursor movieCursor = getActivity().getContentResolver().query(
-                uri,
-                null,
-                MovieContract.MovieEntry._ID + " = ?",
-                new String[]{String.valueOf(id)},
-                null);
+            // Helper.getCursorInfo(cursor);
 
-        if (movieCursor != null && movieCursor.moveToFirst()) {
+            mListener.onItemSelected(MovieContract.MovieEntry.buildMovieUri(
+                    cursor.getInt(COL_ID)));
 
-            int idIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
-            int remoteIdIndex = movieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_REMOTE_MOVIE_ID);
-
-
-            Intent intent = new Intent(getActivity(), MovieDetailActivity.class);
-
-            intent.putExtra(Constants.EXTRA_LOCAL_ID, movieCursor.getInt(idIndex));
-            intent.putExtra(Constants.EXTRA_REMOTE_ID, movieCursor.getInt(remoteIdIndex));
-
-            getActivity().startActivity(intent);
-
-            if (null != mListener) {
-                // Notify the active callbacks interface (the activity, if the
-                // fragment is attached to one) that an item has been selected.
-                mListener.onItemSelected(id);
-            }
+            // Another way to do this
+            /*((Callback) getActivity())
+                    .onItemSelected(MovieContract.MovieEntry.buildMovieUri(
+                            cursor.getInt(COL_ID)
+                    ));*/
         }
-
-        movieCursor.close();
     }
 
 
     private void updateMovies() {
+
+        Log.i(TAG, "PosterGridFragment - updateMovies");
+
 
         // Instantiate the RequestQueue.
         mRequestQueue = VolleySingleton.getsInstance().getRequestQueue();
@@ -322,10 +333,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
                         // If movie does not have title or id do not but it to the movies list
                         if (id != -1 && !title.equals(Constants.NA)) {
 
-                            Log.d("DB", "popularity: " + popularity);
                             addMovie(id, title, posterPath, overview, average, release, popularity);
-
-
                         }
                     }
                 }
@@ -401,14 +409,15 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
 
     @Override
     public void onSortByPopular() {
+
+        sortOrderId = 0;
         Toast.makeText(getActivity(), "Sorted by Popularity", Toast.LENGTH_SHORT).show();
         getLoaderManager().initLoader(0, null, this);
-
-
     }
 
     @Override
     public void onSortByRating() {
+        sortOrderId = 1;
         Toast.makeText(getActivity(), "Sorted by Rating", Toast.LENGTH_SHORT).show();
         getLoaderManager().initLoader(1, null, this);
     }
@@ -416,6 +425,7 @@ public class ItemGridFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onSortByFavorites() {
 
+        sortOrderId = 2;
         Toast.makeText(getActivity(), "Sorted by Favorites", Toast.LENGTH_SHORT).show();
         getLoaderManager().initLoader(2, null, this);
 

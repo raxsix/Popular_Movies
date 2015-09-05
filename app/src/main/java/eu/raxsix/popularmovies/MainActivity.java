@@ -1,10 +1,9 @@
 package eu.raxsix.popularmovies;
 
-import android.app.ProgressDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -13,33 +12,47 @@ import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
 import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
 
 import eu.raxsix.popularmovies.Interfaces.OnFragmentInteractionListener;
+import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
-import eu.raxsix.popularmovies.fragments.ItemGridFragment;
+import eu.raxsix.popularmovies.fragments.MovieDetailFragment;
+import eu.raxsix.popularmovies.fragments.PosterGridFragment;
 
 /**
  * NB! First thing you have to do is but your movies API key to
+ *
  * @see eu.raxsix.popularmovies.api_key.ApiKey
- *
+ * <p/>
  * Using Volley instead Piccasso library
- *
+ * <p/>
  * The highest rated movie url does not work for me I used Kids movies for alternative
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnFragmentInteractionListener {
 
-    private Fragment mGridFragment;
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+
+
+    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (savedInstanceState == null) {
 
-            mGridFragment = new ItemGridFragment();
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.posterContainer, mGridFragment, "poster")
-                    .commit();
-            Log.d("GRID", "Activity - onCreate -ItemGridFragment is added");
+        if (findViewById(R.id.movie_detail_container) != null) {
+            // The detail container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            if (savedInstanceState == null) {
+
+                setupFragment(MovieContract.MovieEntry.buildMovieUri(1));
+            }
+        } else {
+            mTwoPane = false;
         }
 
         // Call to build up the floating action button
@@ -107,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
 
         // Getting the Poster fragment reference
-        ItemGridFragment fragment = (ItemGridFragment) getSupportFragmentManager().findFragmentByTag("poster");
+        PosterGridFragment fragment = (PosterGridFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_poster);
 
 
         if (v.getTag().equals(Constants.TAG_SORT_POPULAR)) {
@@ -142,8 +155,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setTitle(title);
     }
 
+
     @Override
-    public void onItemSelected(long id) {
+    public void onItemSelected(Uri contentUri) {
+
+        if (mTwoPane) {
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            setupFragment(contentUri);
+
+        } else {
+            Intent intent = new Intent(this, MovieDetailActivity.class)
+                    .setData(contentUri);
+            startActivity(intent);
+        }
+    }
+
+    private void setupFragment(Uri uri) {
+
+        Bundle args = new Bundle();
+        args.putParcelable(MovieDetailFragment.DETAIL_URI, uri);
+
+        MovieDetailFragment fragment = new MovieDetailFragment();
+        fragment.setArguments(args);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                .commit();
 
     }
 }

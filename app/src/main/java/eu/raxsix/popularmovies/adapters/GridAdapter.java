@@ -28,12 +28,11 @@ public class GridAdapter extends SimpleCursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        Log.i("GRID", "GridAdapter - in bindView");
+
         String content = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_PATH));
 
         String title = content;
         String posterUrl = BASE_URL + IMAGE_SIZE + content;
-        Log.d("GRID", posterUrl);
 
         NetworkImageView iconView = (NetworkImageView) view.findViewById(R.id.imageView1);
         iconView.setImageUrl(posterUrl, VolleySingleton.getsInstance().getImageLoader());

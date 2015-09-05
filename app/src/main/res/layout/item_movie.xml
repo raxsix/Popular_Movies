@@ -9,9 +9,4 @@
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:id="@+id/posterImageView" />-->
-
-    <TextView
-        android:layout_width="match_parent"
-        android:id="@+id/test"
-        android:layout_height="wrap_content" />
 </LinearLayout>

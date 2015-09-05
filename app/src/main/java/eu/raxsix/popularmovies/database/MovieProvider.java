@@ -14,13 +14,14 @@ import android.util.Log;
  */
 public class MovieProvider extends ContentProvider {
 
+    private static final String TAG = MovieProvider.class.getSimpleName();
 
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private MovieDbHelper mOpenHelper;
 
     static final int MOVIE = 100;
-    static final int MOVIE_WITH_ID = 110;
+    static final int MOVIE_BY_ID = 110;
     static final int MOVIE_WITH_TRAILER = 101;
     static final int MOVIE_WITH_REVIEW = 102;
     static final int TRAILER = 300;
@@ -33,7 +34,7 @@ public class MovieProvider extends ContentProvider {
 
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, MovieContract.PATH_MOVIE, MOVIE);
-        matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#", MOVIE_WITH_ID);
+        matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#", MOVIE_BY_ID);
         matcher.addURI(authority, MovieContract.PATH_TRAILER, TRAILER);
         matcher.addURI(authority, MovieContract.PATH_REVIEW, REVIEW);
         matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", MOVIE_WITH_TRAILER);
@@ -91,6 +92,7 @@ public class MovieProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
 
             case MOVIE: {
+                Log.i(TAG, "query MOVIE");
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.MovieEntry.TABLE_NAME,
                         projection,
@@ -103,24 +105,15 @@ public class MovieProvider extends ContentProvider {
                 break;
             }
 
-            case MOVIE_WITH_ID: {
-                //retCursor = getMovieById(uri,projection,sortOrder);
-
-                retCursor = mOpenHelper.getReadableDatabase().query(
-                        MovieContract.MovieEntry.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
+            case MOVIE_BY_ID: {
+                Log.i(TAG, "query MOVIE_BY_ID");
+                retCursor = getMovieById(uri, projection, sortOrder);
                 break;
             }
 
             case TRAILER: {
 
-                Log.i("Helper", "TRAILER");
+                Log.i(TAG, "query TRAILER");
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.TrailerEntry.TABLE_NAME,
                         projection,
@@ -134,6 +127,8 @@ public class MovieProvider extends ContentProvider {
             }
 
             case REVIEW: {
+
+                Log.i(TAG, "query REVIEW");
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.ReviewEntry.TABLE_NAME,
                         projection,
@@ -147,11 +142,11 @@ public class MovieProvider extends ContentProvider {
             }
 
             case MOVIE_WITH_TRAILER: {
-
+                Log.i(TAG, "query MOVIE_WITH_TRAILER");
                 String[] columns = {MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY};
                 String id = MovieContract.getIdFromUri(uri);
 
-                Log.i("Helper", "MOVIE_WITH_TRAILER");
+
                 retCursor = sMovieWithTrailerQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                         columns,
                         MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY + " = ?",
@@ -163,6 +158,7 @@ public class MovieProvider extends ContentProvider {
                 break;
             }
             case MOVIE_WITH_REVIEW: {
+                Log.i(TAG, "query MOVIE_WITH_REVIEW");
                 retCursor = sMovieWithReviewQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                         projection,
                         selection,
@@ -178,21 +174,20 @@ public class MovieProvider extends ContentProvider {
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
-        retCursor.setNotificationUri(getContext().getContentResolver(), uri);
+      retCursor.setNotificationUri(getContext().getContentResolver(), uri);
+
         return retCursor;
     }
 
-    private static final String sMovieIdSelection =
-            MovieContract.MovieEntry._ID + " = ?";
 
     private Cursor getMovieById(
             Uri uri, String[] projection, String sortOrder) {
 
-
+        String sMovieIdSelection = MovieContract.MovieEntry._ID + " = ?";
         String id = MovieContract.getIdFromUri(uri);
 
         return mOpenHelper.getReadableDatabase().query(
-                MovieContract.ReviewEntry.TABLE_NAME,
+                MovieContract.MovieEntry.TABLE_NAME,
                 projection,
                 sMovieIdSelection,
                 new String[]{id},
@@ -205,7 +200,7 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-
+        Log.i(TAG, "getType");
         // Use the Uri Matcher to determine what kind of URI this is.
         final int match = sUriMatcher.match(uri);
 
@@ -213,7 +208,7 @@ public class MovieProvider extends ContentProvider {
             // Student: Uncomment and fill out these two cases
             case MOVIE:
                 return MovieContract.MovieEntry.CONTENT_TYPE;
-            case MOVIE_WITH_ID:
+            case MOVIE_BY_ID:
                 return MovieContract.MovieEntry.CONTENT_ITEM_TYPE;
             case TRAILER:
                 return MovieContract.TrailerEntry.CONTENT_TYPE;
@@ -236,7 +231,7 @@ public class MovieProvider extends ContentProvider {
 
         switch (match) {
             case MOVIE: {
-
+                Log.i(TAG, "insert MOVIE");
                 long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = MovieContract.MovieEntry.buildMovieUri(_id);
@@ -245,6 +240,7 @@ public class MovieProvider extends ContentProvider {
                 break;
             }
             case TRAILER: {
+                Log.i(TAG, "insert TRAILER");
                 long _id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = MovieContract.TrailerEntry.buildTrailerUri(_id);
@@ -253,6 +249,7 @@ public class MovieProvider extends ContentProvider {
                 break;
             }
             case REVIEW: {
+                Log.i(TAG, "insert REVIEW");
                 long _id = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = MovieContract.ReviewEntry.buildReviewUri(_id);
@@ -305,15 +302,31 @@ public class MovieProvider extends ContentProvider {
 
         switch (match) {
             case MOVIE:
+                Log.i(TAG, "update MOVIE");
                 rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
+
+            case MOVIE_BY_ID:
+                Log.i(TAG, "update MOVIE_BY_ID");
+
+                selection = MovieContract.MovieEntry._ID + "=?";
+                selectionArgs = new String[]{MovieContract.getIdFromUri(uri)};
+
+                rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+
+                break;
+
             case TRAILER:
+                Log.i(TAG, "update TRAILER");
                 rowsUpdated = db.update(MovieContract.TrailerEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
 
             case REVIEW:
+
+                Log.i(TAG, "update REVIEW");
                 rowsUpdated = db.update(MovieContract.ReviewEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
@@ -325,6 +338,5 @@ public class MovieProvider extends ContentProvider {
         }
         return rowsUpdated;
     }
-
 
 }
