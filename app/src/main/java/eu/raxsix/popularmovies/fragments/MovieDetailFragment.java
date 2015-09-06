@@ -257,13 +257,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
             getTrailerInfo();
             getReviewInfo();
 
-            buildYoutubeShareUrl();
-
-            // If onCreateOptionsMenu has already happened, we need to update the share intent now.
-            if (mShareActionProvider != null) {
-                mShareActionProvider.setShareIntent(createShareForecastIntent());
-            }
-
         }
     }
 
@@ -363,6 +356,14 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
         mListView.setAdapter(trailerAdapter);
 
         mListView.setOnItemClickListener(this);
+
+
+        buildYoutubeShareUrl();
+
+        // If onCreateOptionsMenu has already happened, we need to update the share intent now.
+        if (mShareActionProvider != null) {
+            mShareActionProvider.setShareIntent(createShareForecastIntent());
+        }
 
     }
 
