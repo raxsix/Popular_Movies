@@ -35,4 +35,13 @@ public interface Constants {
     String EXTRA_REMOTE_ID = "remoteId";
     String EXTRA_LOCAL_ID = "localId";
 
+    public static final int COL_MOVIE_ID = 0;
+    public static final int COL_REMOTE_MOVIE_ID = 1;
+    public static final int COL_TITLE = 2;
+    public static final int COL_IMAGE_PATH = 3;
+    public static final int COL_DATE = 4;
+    public static final int COL_RATING = 6;
+    public static final int COL_FAVORITE = 7;
+    public static final int COL_OVERVIEW = 9;
+
 }

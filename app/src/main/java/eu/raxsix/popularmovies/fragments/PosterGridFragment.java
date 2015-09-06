@@ -61,14 +61,6 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
 
     private int sortOrderId = 0;
 
-    public static final int COL_ID = 0;
-    public static final int COL_TITLE = 2;
-    public static final int COL_IMAGE_PATH = 3;
-    public static final int COL_DATE = 4;
-    public static final int COL_RATING = 6;
-    public static final int COL_FAVORITE = 7;
-    public static final int COL_OVERVIEW = 9;
-
     private JsonObjectRequest mJsObjRequest;
     private TextView mErrorView;
     private RequestQueue mRequestQueue;
@@ -218,7 +210,7 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
             // Helper.getCursorInfo(cursor);
 
             mListener.onItemSelected(MovieContract.MovieEntry.buildMovieUri(
-                    cursor.getInt(COL_ID)));
+                    cursor.getInt(Constants.COL_MOVIE_ID)));
 
             // Another way to do this
             /*((Callback) getActivity())

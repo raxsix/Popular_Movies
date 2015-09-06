@@ -58,6 +58,7 @@ import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_SITE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_SIZE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_TYPE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_YOUTUBE_KEY;
+import static eu.raxsix.popularmovies.extras.Constants.*;
 
 
 public class MovieDetailFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
@@ -67,13 +68,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     private static final String TAG = MovieDetailFragment.class.getSimpleName();
 
     public static final int COL_MOVIE_ID = 0;
-    public static final int COL_REMOTE_MOVIE_ID = 1;
-    public static final int COL_TITLE = 2;
-    public static final int COL_IMAGE_PATH = 3;
-    public static final int COL_DATE = 4;
-    public static final int COL_RATING = 6;
-    public static final int COL_FAVORITE = 7;
-    public static final int COL_OVERVIEW = 9;
+
 
     private Uri mUri;
     private int mLocalMovieId;
