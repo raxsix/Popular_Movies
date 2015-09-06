@@ -10,5 +10,5 @@ public interface OnFragmentInteractionListener {
     /**
      * Callback for when an item has been selected.
      */
-    public void onItemSelected(Uri dateUri);
+    void onItemSelected(Uri dateUri);
 }

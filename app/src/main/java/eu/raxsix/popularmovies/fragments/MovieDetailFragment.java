@@ -2,7 +2,6 @@ package eu.raxsix.popularmovies.fragments;
 
 
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -15,7 +14,6 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -79,10 +77,8 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
 
     public static final String DETAIL_URI = "URI";
+
     private static final String TAG = MovieDetailFragment.class.getSimpleName();
-
-    public static final int COL_MOVIE_ID = 0;
-
 
     private Uri mUri;
     private int mLocalMovieId;
@@ -106,22 +102,14 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
         // Required empty public constructor
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d(TAG, "MovieDetailFragment - onCreate");
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.d(TAG, "MovieDetailFragment - onCreateView");
-
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(MovieDetailFragment.DETAIL_URI);
-
         }
 
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
@@ -145,8 +133,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        Log.d(TAG, "MovieDetailFragment - onActivityCreated");
-
         // Get Volley to init ImageLoader for cached images
         VolleySingleton mVolleySingleton = VolleySingleton.getsInstance();
 
@@ -159,21 +145,9 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
     }
 
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        Log.d(TAG, "MovieDetailFragment - onCreateLoader");
         return new CursorLoader(getActivity(),
                 mUri,
                 null,
@@ -185,11 +159,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-
-        Log.d(TAG, "MovieDetailFragment - onLoadFinished");
-
         if (data != null && data.moveToFirst()) {
-
 
             // Set favorite
             mFavorite = data.getInt(COL_FAVORITE);
@@ -220,7 +190,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
                             updateValue,
                             null,
                             null);
-
                 }
             });
 
@@ -241,21 +210,15 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
                 @Override
                 public void onErrorResponse(VolleyError error) {
 
+                    handleVolleyError(error);
                 }
             });
-
 
             // Set title
             mTitle.setText(data.getString(COL_TITLE));
 
-
             // Building the date
-
             String date = data.getString(COL_DATE);
-            //Log.d(TAG, date + "");
-
-
-            // Set the year
 
             // Set the year, take the string and make the Calendar object from it
             try {
@@ -273,20 +236,15 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
             // Set overview
             String overview = data.getString(COL_OVERVIEW);
-            // Log.d(TAG, overview + "");
             mOverview.setText(overview);
 
-
-            Double rating = data.getDouble(COL_RATING);
-            // Log.d(TAG, rating + "");
-
             // Set the rating
+            Double rating = data.getDouble(COL_RATING);
             mRating.setText(Double.toString(rating) + " / 10");
 
-            mRemoteMovieId = data.getInt(COL_REMOTE_MOVIE_ID);
-            Log.d(TAG, mRemoteMovieId + " THIS IS REMOTE MOVIE ID");
 
-            mLocalMovieId = data.getInt(COL_MOVIE_ID);
+            mRemoteMovieId = data.getInt(COL_REMOTE_MOVIE_ID);
+            mLocalMovieId = data.getInt(Constants.COL_MOVIE_ID);
 
             getTrailerInfo();
             getReviewInfo();
@@ -304,8 +262,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     private void getTrailerInfo() {
 
         mListProgressBar.setVisibility(View.VISIBLE);
-
-        Log.d(TAG, "getTrailerInfo was called");
 
         String trailerUrl = Constants.MOVIE_TRAILER_BASE_URL + mRemoteMovieId + "/videos?api_key=" + ApiKey.API_KEY;
 
@@ -338,11 +294,8 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
     private void addTrailerToDatabase(String youtubeKey, String name, String site, int size, String type) {
 
-        Log.d(TAG, "addTrailerToDatabase was called");
-
         //content://eu.raxsix.popularmovies/trailer/youtubeKey
         Uri uri = MovieContract.TrailerEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(youtubeKey)).build();
-
 
         Cursor trailerCursor = getActivity().getContentResolver().query(
                 uri,
@@ -353,7 +306,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
         // Is this trailer already in db, if not then add it
         if (!trailerCursor.moveToFirst()) {
-
 
             ContentValues trailerValues = new ContentValues();
 
@@ -379,9 +331,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
     private void setTrailerInfo() {
 
-        Log.d(TAG, "setTrailerInfo was called");
         String[] columns = {MovieContract.TrailerEntry._ID, MovieContract.TrailerEntry.COLUMN_NAME};
-
 
         @SuppressLint("Recycle")
         Cursor setTrailerCursor = getActivity().getContentResolver().query(
@@ -401,7 +351,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     }
 
     private void getReviewInfo() {
-        Log.d(TAG, "getReviewInfo was called");
 
         String reviewUrl = Constants.MOVIE_REVIEW_BASE_URL + mRemoteMovieId + "/reviews?api_key=" + ApiKey.API_KEY;
 
@@ -431,7 +380,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
     private void setReviewInfo() {
 
-        Log.d(TAG, "setReviewInfo was called");
         StringBuilder sb = new StringBuilder();
 
         Cursor cursor = getActivity().getContentResolver().query(
@@ -468,7 +416,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
             try {
 
                 if (response.has(KEY_RESULTS)) {
-
 
                     JSONArray jsonArray = response.getJSONArray(KEY_RESULTS);
 
@@ -560,8 +507,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
     private void addReviewsToDatabase(String author, String content) {
 
-        Log.d(TAG, "addReviewsToDatabase was called");
-
         String[] columns = {MovieContract.ReviewEntry.COLUMN_AUTHOR};
 
         Cursor reviewCursor = getActivity().getContentResolver().query(
@@ -594,8 +539,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        Log.d(TAG, "onItemClick was called");
-
         String[] columns = {MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY};
 
         Cursor trailerCursor = getActivity().getContentResolver().query(
@@ -609,11 +552,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
             int youtubeKeyIndex = trailerCursor.getColumnIndex(MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY);
 
-            Log.d(TAG, "youtubeIndex: " + youtubeKeyIndex);
-
             String youtubeKey = trailerCursor.getString(youtubeKeyIndex);
-
-            Log.d(TAG, "youtubeKey: " + youtubeKey);
 
             watchYoutubeVideo(youtubeKey);
         }
@@ -640,23 +579,17 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
      */
     private void handleVolleyError(VolleyError error) {
 
-
         if (error instanceof TimeoutError || error instanceof NoConnectionError) {
             Toast.makeText(getActivity(), R.string.error_timeout, Toast.LENGTH_LONG).show();
 
-
         } else if (error instanceof AuthFailureError) {
 
-            //TODO
         } else if (error instanceof ServerError) {
 
-            //TODO
         } else if (error instanceof NetworkError) {
 
-            //TODO
         } else if (error instanceof ParseError) {
 
-            //TODO
         }
     }
 }

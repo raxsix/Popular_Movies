@@ -21,14 +21,14 @@ import eu.raxsix.popularmovies.fragments.PosterGridFragment;
  * NB! First thing you have to do is but your movies API key to
  *
  * @see eu.raxsix.popularmovies.api_key.ApiKey
- * <p/>
+ *
  * Using Volley instead Piccasso library
- * <p/>
- * The highest rated movie url does not work for me I used Kids movies for alternative
+ *
+ *
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnFragmentInteractionListener {
 
-    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+    private static final String DETAIL_FRAGMENT_TAG = "DFTAG";
 
 
     private boolean mTwoPane;
@@ -156,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+
     @Override
     public void onItemSelected(Uri contentUri) {
 
@@ -181,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fragment.setArguments(args);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                .replace(R.id.movie_detail_container, fragment, DETAIL_FRAGMENT_TAG)
                 .commit();
 
     }

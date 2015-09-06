@@ -5,7 +5,6 @@ package eu.raxsix.popularmovies.Interfaces;
  */
 public interface SortListener {
 
-
     void onSortByPopular();
     void onSortByRating();
     void onSortByFavorites();

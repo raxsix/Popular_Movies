@@ -22,8 +22,6 @@ public class MovieProvider extends ContentProvider {
 
     static final int MOVIE = 100;
     static final int MOVIE_BY_ID = 110;
-    static final int MOVIE_WITH_TRAILER = 101;
-    static final int MOVIE_WITH_REVIEW = 102;
     static final int TRAILER = 300;
     static final int TRAILER_BY_YOUTUBE_ID = 301;
     static final int REVIEW = 400;
@@ -41,7 +39,7 @@ public class MovieProvider extends ContentProvider {
 
         //content://eu.raxsix.popularmovies/trailer/youtubeKey
         matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", TRAILER_BY_YOUTUBE_ID);
-        matcher.addURI(authority, MovieContract.PATH_TRAILER + "/#", MOVIE_WITH_REVIEW);
+        //matcher.addURI(authority, MovieContract.PATH_TRAILER + "/#", MOVIE_WITH_REVIEW);
 
         matcher.addURI(authority, MovieContract.PATH_REVIEW, REVIEW);
         // matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", MOVIE_WITH_TRAILER);
@@ -66,7 +64,7 @@ public class MovieProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
 
             case MOVIE: {
-                Log.i(TAG, "query MOVIE");
+
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.MovieEntry.TABLE_NAME,
                         projection,
@@ -80,14 +78,13 @@ public class MovieProvider extends ContentProvider {
             }
 
             case MOVIE_BY_ID: {
-                Log.i(TAG, "query MOVIE_BY_ID");
+
                 retCursor = getMovieById(uri, projection, sortOrder);
                 break;
             }
 
             case TRAILER: {
 
-                Log.i(TAG, "query TRAILER");
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.TrailerEntry.TABLE_NAME,
                         projection,
@@ -101,14 +98,13 @@ public class MovieProvider extends ContentProvider {
             }
 
             case TRAILER_BY_YOUTUBE_ID: {
-                Log.i(TAG, "query TRAILER_BY_YOUTUBE_ID");
+
                 retCursor = getTrailerById(uri, projection, sortOrder);
                 break;
             }
 
             case REVIEW: {
 
-                Log.i(TAG, "query REVIEW");
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MovieContract.ReviewEntry.TABLE_NAME,
                         projection,
@@ -182,10 +178,6 @@ public class MovieProvider extends ContentProvider {
                 return MovieContract.TrailerEntry.CONTENT_ITEM_TYPE;
             case REVIEW:
                 return MovieContract.ReviewEntry.CONTENT_TYPE;
-            case MOVIE_WITH_TRAILER:
-                return MovieContract.TrailerEntry.CONTENT_TYPE;
-            case MOVIE_WITH_REVIEW:
-                return MovieContract.ReviewEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -199,7 +191,7 @@ public class MovieProvider extends ContentProvider {
 
         switch (match) {
             case MOVIE: {
-                Log.i(TAG, "insert MOVIE");
+
                 long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = MovieContract.MovieEntry.buildMovieUri(_id);
@@ -208,7 +200,7 @@ public class MovieProvider extends ContentProvider {
                 break;
             }
             case TRAILER: {
-                Log.i(TAG, "insert TRAILER");
+
                 long _id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = MovieContract.TrailerEntry.buildTrailerUri(_id);
@@ -217,7 +209,7 @@ public class MovieProvider extends ContentProvider {
                 break;
             }
             case REVIEW: {
-                Log.i(TAG, "insert REVIEW");
+
                 long _id = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = MovieContract.ReviewEntry.buildReviewUri(_id);
@@ -270,14 +262,12 @@ public class MovieProvider extends ContentProvider {
 
         switch (match) {
             case MOVIE:
-                Log.i(TAG, "update MOVIE");
+
                 rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
 
             case MOVIE_BY_ID:
-                Log.i(TAG, "update MOVIE_BY_ID");
-
                 selection = MovieContract.MovieEntry._ID + "=?";
                 selectionArgs = new String[]{MovieContract.getIdFromUri(uri)};
 
@@ -287,14 +277,13 @@ public class MovieProvider extends ContentProvider {
                 break;
 
             case TRAILER:
-                Log.i(TAG, "update TRAILER");
+
                 rowsUpdated = db.update(MovieContract.TrailerEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
 
             case REVIEW:
 
-                Log.i(TAG, "update REVIEW");
                 rowsUpdated = db.update(MovieContract.ReviewEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;

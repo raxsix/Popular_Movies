@@ -12,13 +12,11 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -67,12 +65,12 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
 
     private int sortOrderId = 0;
 
-    private JsonObjectRequest mJsObjRequest;
-    private RequestQueue mRequestQueue;
+    private GridAdapter mAdapter;
     private ProgressDialog mDialog;
-    private OnFragmentInteractionListener mListener;
-    private GridAdapter adapter;
+    private RequestQueue mRequestQueue;
+    private JsonObjectRequest mJsObjRequest;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private OnFragmentInteractionListener mListener;
 
     public PosterGridFragment() {
         // Required empty public constructor
@@ -88,7 +86,6 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
         }
-        Log.i(TAG, "PosterGridFragment - onAttach");
     }
 
 
@@ -96,15 +93,16 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.i(TAG, "PosterGridFragment - onCreateView");
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_grid, container, false);
+
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefresh);
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
         GridView gridview = (GridView) rootView.findViewById(R.id.gridView);
-        adapter = new GridAdapter(getActivity(), R.layout.fragment_item_grid);
-        gridview.setAdapter(adapter);
+
+        mAdapter = new GridAdapter(getActivity(), R.layout.fragment_item_grid);
+        gridview.setAdapter(mAdapter);
         gridview.setOnItemClickListener(this);
 
         return rootView;
@@ -116,11 +114,8 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
 
         mDialog = new ProgressDialog(getActivity());
         mDialog.setMessage("Loading");
-
         mDialog.setCanceledOnTouchOutside(false);
         mDialog.show();
-
-        Log.i(TAG, "PosterGridFragment - onActivityCreated");
 
         updateMovies();
 
@@ -129,24 +124,11 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        Log.i(TAG, "PosterGridFragment - onStart");
-    }
-
-    @Override
     public void onDetach() {
-
-        Log.i(TAG, "PosterGridFragment - onDetach");
         super.onDetach();
         mListener = null;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.i(TAG, "PosterGridFragment - onDestroy");
-    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -156,34 +138,26 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
         switch (id) {
 
             case 0:
-                Log.i(TAG, "PosterGridFragment - onCreateLoader 0");
-                Log.i(TAG, "PosterGridFragment - onCreateLoader 0 QUERY MOVIES");
                 loader = new CursorLoader(getActivity(),
                         MovieContract.MovieEntry.CONTENT_URI,
                         new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
                         null,
                         null,
                         MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY + " DESC LIMIT 20");
-
                 break;
 
             case 1:
 
-                Log.i(TAG, "PosterGridFragment - onCreateLoader 1");
-                Log.i(TAG, "PosterGridFragment - onCreateLoader 1 QUERY MOVIES");
                 loader = new CursorLoader(getActivity(),
                         MovieContract.MovieEntry.CONTENT_URI,
                         new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
                         null,
                         null,
                         MovieContract.MovieEntry.COLUMN_RATING + " DESC LIMIT 20");
-
                 break;
 
             case 2:
 
-                Log.i(TAG, "PosterGridFragment - onCreateLoader 2");
-                Log.i(TAG, "PosterGridFragment - onCreateLoader 2 QUERY MOVIES");
                 loader = new CursorLoader(getActivity(),
                         MovieContract.MovieEntry.CONTENT_URI,
                         new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_IMAGE_PATH},
@@ -192,8 +166,6 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
                         null);
                 break;
         }
-
-
         return loader;
     }
 
@@ -202,16 +174,14 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
         if (sortOrderId == loader.getId()) {
-            adapter.swapCursor(data);
-            Log.i(TAG, "PosterGridFragment - onLoadFinished" + loader.getId());
+            mAdapter.swapCursor(data);
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
-        Log.i(TAG, "PosterGridFragment - onLoaderReset");
-        adapter.swapCursor(null);
+        mAdapter.swapCursor(null);
     }
 
     @Override
@@ -219,8 +189,6 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
 
         Cursor cursor = (Cursor) parent.getItemAtPosition(position);
         if (cursor != null) {
-
-            // Helper.getCursorInfo(cursor);
 
             mListener.onItemSelected(MovieContract.MovieEntry.buildMovieUri(
                     cursor.getInt(Constants.COL_MOVIE_ID)));
@@ -236,9 +204,6 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
 
     private void updateMovies() {
 
-        Log.i(TAG, "PosterGridFragment - updateMovies");
-
-
         // Instantiate the RequestQueue.
         mRequestQueue = VolleySingleton.getsInstance().getRequestQueue();
 
@@ -249,13 +214,13 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
             @Override
             public void onResponse(JSONObject response) {
 
-                // mErrorView.setVisibility(View.GONE);
                 mJsObjRequest.setTag(TAG_REQUEST_POPULAR);
 
                 // Parse the response
                 parseJsonResponse(response);
 
                 mDialog.hide();
+
                 mSwipeRefreshLayout.setRefreshing(false);
 
             }
@@ -420,24 +385,21 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
      */
     private void handleVolleyError(VolleyError error) {
 
+        mDialog.hide();
+
         if (error instanceof TimeoutError || error instanceof NoConnectionError) {
 
-            mDialog.hide();
             Toast.makeText(getActivity(), R.string.error_timeout, Toast.LENGTH_LONG).show();
             mSwipeRefreshLayout.setRefreshing(false);
 
         } else if (error instanceof AuthFailureError) {
 
-            //TODO
         } else if (error instanceof ServerError) {
 
-            //TODO
         } else if (error instanceof NetworkError) {
 
-            //TODO
         } else if (error instanceof ParseError) {
 
-            //TODO
         }
     }
 
@@ -451,6 +413,7 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
 
     @Override
     public void onSortByRating() {
+
         sortOrderId = 1;
         Toast.makeText(getActivity(), "Sorted by Rating", Toast.LENGTH_SHORT).show();
         getLoaderManager().initLoader(1, null, this);

@@ -23,7 +23,6 @@ public class GridAdapter extends SimpleCursorAdapter {
 
     public GridAdapter(Context context, int layout) {
         super(context, layout, null, new String[]{MovieContract.MovieEntry.COLUMN_IMAGE_PATH}, null, 0);
-        Log.i("GRID", " in GridAdapter constructor");
     }
 
     @Override
