@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Building up popular movies list button
         ImageView popularImage = new ImageView(this);
-        popularImage.setImageResource(R.drawable.ic_stars_black_24dp);
+        popularImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
         SubActionButton popular_sort = itemBuilder.setContentView(popularImage).build();
         // Setting tag for this button to help manage click event
         popular_sort.setTag(Constants.TAG_SORT_POPULAR);
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Building up kids movies button
         ImageView ratedImage = new ImageView(this);
-        ratedImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
+        ratedImage.setImageResource(R.drawable.ic_star_half_black_48dp);
         SubActionButton rated_sort = itemBuilder.setContentView(ratedImage).build();
         // Setting tag for this button to help manage click event
         rated_sort.setTag(Constants.TAG_SORT_RATING);
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Building up kids movies button
         ImageView favoriteImage = new ImageView(this);
-        favoriteImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
+        favoriteImage.setImageResource(R.drawable.ic_stars_black_24dp);
         SubActionButton favorite_sort = itemBuilder.setContentView(favoriteImage).build();
         // Setting tag for this button to help manage click event
         favorite_sort.setTag(Constants.TAG_SORT_FAVORITES);

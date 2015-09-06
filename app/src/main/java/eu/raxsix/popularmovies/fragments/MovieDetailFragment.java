@@ -46,7 +46,6 @@ import eu.raxsix.popularmovies.adapters.TrailerCursorAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
 import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
-import eu.raxsix.popularmovies.helpers.Helper;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 
 import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_REVIEW;
@@ -76,6 +75,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     public static final int COL_FAVORITE = 7;
     public static final int COL_OVERVIEW = 9;
 
+    private Uri mUri;
     private int mLocalMovieId;
     private int mRemoteMovieId;
     private int mFavorite;
@@ -92,7 +92,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     private RequestQueue mRequestQueue;
     private JsonObjectRequest mTrailerRequest;
     private JsonObjectRequest mReviewRequest;
-    private Uri mUri;
 
     public MovieDetailFragment() {
         // Required empty public constructor
@@ -109,7 +108,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
                              Bundle savedInstanceState) {
 
         Log.d(TAG, "MovieDetailFragment - onCreateView");
-
 
         Bundle arguments = getArguments();
         if (arguments != null) {
@@ -138,14 +136,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-
         Log.d(TAG, "MovieDetailFragment - onActivityCreated");
-       /* Intent intent = getActivity().getIntent();
-
-        // Extract info from this intent
-        mLocalMovieId = intent.getIntExtra(Constants.EXTRA_LOCAL_ID, -1);
-        mRemoteMovieId = intent.getIntExtra(Constants.EXTRA_REMOTE_ID, -1);*/
-
 
         // Get Volley to init ImageLoader for cached images
         VolleySingleton mVolleySingleton = VolleySingleton.getsInstance();
@@ -340,15 +331,18 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
         Log.d(TAG, "addTrailerToDatabase was called");
 
+        //content://eu.raxsix.popularmovies/trailer/youtubeKey
+        Uri uri = MovieContract.TrailerEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(youtubeKey)).build();
+
+
         Cursor trailerCursor = getActivity().getContentResolver().query(
-                MovieContract.TrailerEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(youtubeKey)).build(),
+                uri,
                 null,
                 null,
                 null,
                 null);
 
-        Helper.getCursorInfo(trailerCursor);
-
+        // Is this trailer already in db, if not then add it
         if (!trailerCursor.moveToFirst()) {
 
 
@@ -378,6 +372,8 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
         Log.d(TAG, "setTrailerInfo was called");
         String[] columns ={MovieContract.TrailerEntry._ID, MovieContract.TrailerEntry.COLUMN_NAME};
+
+
 
         @SuppressLint("Recycle")
         Cursor setTrailerCursor = getActivity().getContentResolver().query(

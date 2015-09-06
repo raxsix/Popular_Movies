@@ -25,7 +25,7 @@ public class MovieProvider extends ContentProvider {
     static final int MOVIE_WITH_TRAILER = 101;
     static final int MOVIE_WITH_REVIEW = 102;
     static final int TRAILER = 300;
-    static final int TRAILER_BY_ID = 301;
+    static final int TRAILER_BY_YOUTUBE_ID = 301;
     static final int REVIEW = 400;
 
     private static UriMatcher buildUriMatcher() {
@@ -36,46 +36,18 @@ public class MovieProvider extends ContentProvider {
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, MovieContract.PATH_MOVIE, MOVIE);
         matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#", MOVIE_BY_ID);
+
         matcher.addURI(authority, MovieContract.PATH_TRAILER, TRAILER);
-        matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", TRAILER_BY_ID);
-        matcher.addURI(authority, MovieContract.PATH_REVIEW, REVIEW);
-       // matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", MOVIE_WITH_TRAILER);
+
+        //content://eu.raxsix.popularmovies/trailer/youtubeKey
+        matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", TRAILER_BY_YOUTUBE_ID);
         matcher.addURI(authority, MovieContract.PATH_TRAILER + "/#", MOVIE_WITH_REVIEW);
+
+        matcher.addURI(authority, MovieContract.PATH_REVIEW, REVIEW);
+        // matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", MOVIE_WITH_TRAILER);
 
         return matcher;
 
-    }
-
-    private static final SQLiteQueryBuilder sMovieWithTrailerQueryBuilder;
-
-    static {
-        sMovieWithTrailerQueryBuilder = new SQLiteQueryBuilder();
-
-        //This is an inner join which looks like
-        //movie INNER JOIN trailer ON trailer.movie_id = movie._id
-        sMovieWithTrailerQueryBuilder.setTables(
-                MovieContract.TrailerEntry.TABLE_NAME + " INNER JOIN " +
-                        MovieContract.MovieEntry.TABLE_NAME +
-                        " ON " + MovieContract.TrailerEntry.TABLE_NAME +
-                        "." + MovieContract.TrailerEntry.COLUMN_MOVIE_KEY +
-                        " = " + MovieContract.MovieEntry.TABLE_NAME +
-                        "." + MovieContract.MovieEntry._ID);
-    }
-
-    private static final SQLiteQueryBuilder sMovieWithReviewQueryBuilder;
-
-    static {
-        sMovieWithReviewQueryBuilder = new SQLiteQueryBuilder();
-
-        //This is an inner join which looks like
-        //movie INNER JOIN review ON review.movie_id = movie._id
-        sMovieWithReviewQueryBuilder.setTables(
-                MovieContract.ReviewEntry.TABLE_NAME + " INNER JOIN " +
-                        MovieContract.MovieEntry.TABLE_NAME +
-                        " ON " + MovieContract.ReviewEntry.TABLE_NAME +
-                        "." + MovieContract.ReviewEntry.COLUMN_MOVIE_KEY +
-                        " = " + MovieContract.MovieEntry.TABLE_NAME +
-                        "." + MovieContract.MovieEntry._ID);
     }
 
 
@@ -128,8 +100,8 @@ public class MovieProvider extends ContentProvider {
                 break;
             }
 
-            case TRAILER_BY_ID: {
-                Log.i(TAG, "query TRAILER_BY_ID");
+            case TRAILER_BY_YOUTUBE_ID: {
+                Log.i(TAG, "query TRAILER_BY_YOUTUBE_ID");
                 retCursor = getTrailerById(uri, projection, sortOrder);
                 break;
             }
@@ -148,36 +120,6 @@ public class MovieProvider extends ContentProvider {
                 );
                 break;
             }
-
-            case MOVIE_WITH_TRAILER: {
-                Log.i(TAG, "query MOVIE_WITH_TRAILER");
-                String[] columns = {MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY};
-                String id = MovieContract.getIdFromUri(uri);
-
-
-                retCursor = sMovieWithTrailerQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-                        columns,
-                        MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY + " = ?",
-                        new String[]{id},
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            }
-            case MOVIE_WITH_REVIEW: {
-                Log.i(TAG, "query MOVIE_WITH_REVIEW");
-                retCursor = sMovieWithReviewQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            }
-
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -236,6 +178,8 @@ public class MovieProvider extends ContentProvider {
                 return MovieContract.MovieEntry.CONTENT_ITEM_TYPE;
             case TRAILER:
                 return MovieContract.TrailerEntry.CONTENT_TYPE;
+            case TRAILER_BY_YOUTUBE_ID:
+                return MovieContract.TrailerEntry.CONTENT_ITEM_TYPE;
             case REVIEW:
                 return MovieContract.ReviewEntry.CONTENT_TYPE;
             case MOVIE_WITH_TRAILER:
