@@ -2,6 +2,7 @@ package eu.raxsix.popularmovies.fragments;
 
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -23,10 +24,17 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -48,6 +56,13 @@ import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 
+import static eu.raxsix.popularmovies.extras.Constants.COL_DATE;
+import static eu.raxsix.popularmovies.extras.Constants.COL_FAVORITE;
+import static eu.raxsix.popularmovies.extras.Constants.COL_IMAGE_PATH;
+import static eu.raxsix.popularmovies.extras.Constants.COL_OVERVIEW;
+import static eu.raxsix.popularmovies.extras.Constants.COL_RATING;
+import static eu.raxsix.popularmovies.extras.Constants.COL_REMOTE_MOVIE_ID;
+import static eu.raxsix.popularmovies.extras.Constants.COL_TITLE;
 import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_REVIEW;
 import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_TRAILER;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_PREVIEW_CONTENT;
@@ -58,7 +73,6 @@ import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_SITE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_SIZE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_TRAILER_TYPE;
 import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_YOUTUBE_KEY;
-import static eu.raxsix.popularmovies.extras.Constants.*;
 
 
 public class MovieDetailFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
@@ -311,7 +325,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
             @Override
             public void onErrorResponse(VolleyError error) {
 
-
+                handleVolleyError(error);
             }
         });
 
@@ -366,8 +380,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     private void setTrailerInfo() {
 
         Log.d(TAG, "setTrailerInfo was called");
-        String[] columns ={MovieContract.TrailerEntry._ID, MovieContract.TrailerEntry.COLUMN_NAME};
-
+        String[] columns = {MovieContract.TrailerEntry._ID, MovieContract.TrailerEntry.COLUMN_NAME};
 
 
         @SuppressLint("Recycle")
@@ -406,7 +419,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
+                handleVolleyError(error);
             }
         });
 
@@ -578,9 +591,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     }
 
 
-
-
-
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
@@ -625,9 +635,28 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "MovieDetailFragment - onDestroy");
+    /**
+     * Custom method for handling different Volley errors
+     */
+    private void handleVolleyError(VolleyError error) {
+
+
+        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+            Toast.makeText(getActivity(), R.string.error_timeout, Toast.LENGTH_LONG).show();
+
+
+        } else if (error instanceof AuthFailureError) {
+
+            //TODO
+        } else if (error instanceof ServerError) {
+
+            //TODO
+        } else if (error instanceof NetworkError) {
+
+            //TODO
+        } else if (error instanceof ParseError) {
+
+            //TODO
+        }
     }
 }

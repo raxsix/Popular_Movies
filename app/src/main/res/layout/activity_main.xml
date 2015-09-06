@@ -4,5 +4,7 @@
     android:name="eu.raxsix.popularmovies.fragments.PosterGridFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="eu.raxsix.popularmovies.fragments.PosterGridFragment"
-    />
+    tools:context="eu.raxsix.popularmovies.fragments.PosterGridFragment" />
+
+
+

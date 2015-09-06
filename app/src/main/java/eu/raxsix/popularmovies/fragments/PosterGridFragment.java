@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,9 +21,15 @@ import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
@@ -36,7 +43,6 @@ import eu.raxsix.popularmovies.R;
 import eu.raxsix.popularmovies.adapters.GridAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
 import eu.raxsix.popularmovies.database.MovieContract;
-import eu.raxsix.popularmovies.database.MovieDbHelper;
 import eu.raxsix.popularmovies.extras.Constants;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 
@@ -55,20 +61,18 @@ import static eu.raxsix.popularmovies.extras.JsonKeys.KEY_VOTE_AVERAGE;
 /**
  * Created by Ragnar on 8/30/2015.
  */
-public class PosterGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>, SortListener {
+public class PosterGridFragment extends Fragment implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>, SortListener, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = PosterGridFragment.class.getSimpleName();
 
     private int sortOrderId = 0;
 
     private JsonObjectRequest mJsObjRequest;
-    private TextView mErrorView;
     private RequestQueue mRequestQueue;
     private ProgressDialog mDialog;
-    private MovieDbHelper mOpenHelper;
-
     private OnFragmentInteractionListener mListener;
     private GridAdapter adapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public PosterGridFragment() {
         // Required empty public constructor
@@ -95,6 +99,8 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
         Log.i(TAG, "PosterGridFragment - onCreateView");
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_grid, container, false);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefresh);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
 
         GridView gridview = (GridView) rootView.findViewById(R.id.gridView);
         adapter = new GridAdapter(getActivity(), R.layout.fragment_item_grid);
@@ -107,6 +113,13 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        mDialog = new ProgressDialog(getActivity());
+        mDialog.setMessage("Loading");
+
+        mDialog.setCanceledOnTouchOutside(false);
+        mDialog.show();
+
         Log.i(TAG, "PosterGridFragment - onActivityCreated");
 
         updateMovies();
@@ -188,7 +201,7 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-        if (sortOrderId == loader.getId()){
+        if (sortOrderId == loader.getId()) {
             adapter.swapCursor(data);
             Log.i(TAG, "PosterGridFragment - onLoadFinished" + loader.getId());
         }
@@ -242,11 +255,15 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
                 // Parse the response
                 parseJsonResponse(response);
 
+                mDialog.hide();
+                mSwipeRefreshLayout.setRefreshing(false);
+
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
 
+                handleVolleyError(error);
             }
         });
 
@@ -396,7 +413,32 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
 
         return movieId;
 
+    }
 
+    /**
+     * Custom method for handling different Volley errors
+     */
+    private void handleVolleyError(VolleyError error) {
+
+        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+
+            mDialog.hide();
+            Toast.makeText(getActivity(), R.string.error_timeout, Toast.LENGTH_LONG).show();
+            mSwipeRefreshLayout.setRefreshing(false);
+
+        } else if (error instanceof AuthFailureError) {
+
+            //TODO
+        } else if (error instanceof ServerError) {
+
+            //TODO
+        } else if (error instanceof NetworkError) {
+
+            //TODO
+        } else if (error instanceof ParseError) {
+
+            //TODO
+        }
     }
 
     @Override
@@ -421,5 +463,10 @@ public class PosterGridFragment extends Fragment implements AdapterView.OnItemCl
         Toast.makeText(getActivity(), "Sorted by Favorites", Toast.LENGTH_SHORT).show();
         getLoaderManager().initLoader(2, null, this);
 
+    }
+
+    @Override
+    public void onRefresh() {
+        updateMovies();
     }
 }
