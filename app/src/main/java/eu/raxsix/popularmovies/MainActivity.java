@@ -1,11 +1,9 @@
 package eu.raxsix.popularmovies;
 
-import android.content.ContentProvider;
-import android.content.ContentResolver;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -13,33 +11,48 @@ import com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
 import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
 
+import eu.raxsix.popularmovies.Interfaces.OnFragmentInteractionListener;
 import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
-import eu.raxsix.popularmovies.fragments.PosterFragment;
+import eu.raxsix.popularmovies.fragments.MovieDetailFragment;
+import eu.raxsix.popularmovies.fragments.PosterGridFragment;
 
 /**
  * NB! First thing you have to do is but your movies API key to
+ *
  * @see eu.raxsix.popularmovies.api_key.ApiKey
- *
+ * <p/>
  * Using Volley instead Piccasso library
- *
+ * <p/>
  * The highest rated movie url does not work for me I used Kids movies for alternative
  */
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnFragmentInteractionListener {
 
-    private Fragment mPosterFragment;
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+
+
+    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (savedInstanceState == null) {
 
-            mPosterFragment = new PosterFragment();
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.posterContainer, mPosterFragment, "poster")
-                    .commit();
+        if (findViewById(R.id.movie_detail_container) != null) {
+            // The detail container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            if (savedInstanceState == null) {
+
+                setupFragment(MovieContract.MovieEntry.buildMovieUri(1));
+            }
+        } else {
+            mTwoPane = false;
         }
 
         // Call to build up the floating action button
@@ -65,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Building up popular movies list button
         ImageView popularImage = new ImageView(this);
-        popularImage.setImageResource(R.drawable.ic_stars_black_24dp);
+        popularImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
         SubActionButton popular_sort = itemBuilder.setContentView(popularImage).build();
         // Setting tag for this button to help manage click event
         popular_sort.setTag(Constants.TAG_SORT_POPULAR);
@@ -73,19 +86,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Building up kids movies button
         ImageView ratedImage = new ImageView(this);
-        ratedImage.setImageResource(R.drawable.ic_supervisor_account_black_24dp);
+        ratedImage.setImageResource(R.drawable.ic_star_half_black_48dp);
         SubActionButton rated_sort = itemBuilder.setContentView(ratedImage).build();
         // Setting tag for this button to help manage click event
         rated_sort.setTag(Constants.TAG_SORT_RATING);
         rated_sort.setOnClickListener(this);
 
+        // Building up kids movies button
+        ImageView favoriteImage = new ImageView(this);
+        favoriteImage.setImageResource(R.drawable.ic_stars_black_24dp);
+        SubActionButton favorite_sort = itemBuilder.setContentView(favoriteImage).build();
+        // Setting tag for this button to help manage click event
+        favorite_sort.setTag(Constants.TAG_SORT_FAVORITES);
+        favorite_sort.setOnClickListener(this);
+
         // Putting the menu together
         new FloatingActionMenu.Builder(this)
                 .setRadius(200)
                 .setStartAngle(180)
-                .setEndAngle(230)
+                .setEndAngle(280)
                 .addSubActionView(popular_sort)
                 .addSubActionView(rated_sort)
+                .addSubActionView(favorite_sort)
                 .attachTo(actionButton)
                 .build();
 
@@ -98,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
 
         // Getting the Poster fragment reference
-        PosterFragment fragment = (PosterFragment) getSupportFragmentManager().findFragmentByTag("poster");
+        PosterGridFragment fragment = (PosterGridFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_poster);
 
 
         if (v.getTag().equals(Constants.TAG_SORT_POPULAR)) {
@@ -114,7 +136,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (v.getTag().equals(Constants.TAG_SORT_RATING)) {
 
             fragment.onSortByRating();
-            setActionBarTitle(getString(R.string.kids_movies_title));
+            setActionBarTitle(getString(R.string.most_rated_title));
+
+        }
+
+        if (v.getTag().equals(Constants.TAG_SORT_FAVORITES)) {
+
+            fragment.onSortByFavorites();
+            setActionBarTitle(getString(R.string.favorites_title));
 
         }
     }
@@ -126,4 +155,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setTitle(title);
     }
 
+
+    @Override
+    public void onItemSelected(Uri contentUri) {
+
+        if (mTwoPane) {
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            setupFragment(contentUri);
+
+        } else {
+            Intent intent = new Intent(this, MovieDetailActivity.class)
+                    .setData(contentUri);
+            startActivity(intent);
+        }
+    }
+
+    private void setupFragment(Uri uri) {
+
+        Bundle args = new Bundle();
+        args.putParcelable(MovieDetailFragment.DETAIL_URI, uri);
+
+        MovieDetailFragment fragment = new MovieDetailFragment();
+        fragment.setArguments(args);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                .commit();
+
+    }
 }

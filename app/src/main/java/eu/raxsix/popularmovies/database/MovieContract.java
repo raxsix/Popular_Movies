@@ -31,7 +31,7 @@ public class MovieContract {
     /**
      * Inner class that defines the contents of the movie table
      */
-    public static final class MovieEntry implements BaseColumns {
+    public static final class MovieEntry implements BaseColumns{
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIE).build();
@@ -57,6 +57,10 @@ public class MovieContract {
 
         public static final String COLUMN_IS_FAVORITE = "favorite";
 
+        public static final String COLUMN_MOVIE_TAG = "tag";
+
+        public static final String COLUMN_MOVIE_POPULARITY = "popularity";
+
         public static Uri buildMovieUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
@@ -64,7 +68,7 @@ public class MovieContract {
     }
 
 
-    public static final class TrailerEntry implements BaseColumns {
+    public static final class TrailerEntry implements BaseColumns{
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRAILER).build();
@@ -96,7 +100,7 @@ public class MovieContract {
 
     }
 
-    public static final class ReviewEntry implements BaseColumns {
+    public static final class ReviewEntry implements BaseColumns{
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEW).build();
@@ -119,4 +123,9 @@ public class MovieContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }
+
+    public static String getIdFromUri(Uri uri) {
+        return uri.getLastPathSegment();
+    }
+
 }
