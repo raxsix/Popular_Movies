@@ -40,6 +40,7 @@ public interface Constants {
     public static final int COL_TITLE = 2;
     public static final int COL_IMAGE_PATH = 3;
     public static final int COL_DATE = 4;
+
     public static final int COL_RATING = 6;
     public static final int COL_FAVORITE = 7;
     public static final int COL_OVERVIEW = 9;

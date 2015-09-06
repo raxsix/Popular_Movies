@@ -12,8 +12,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -41,6 +46,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -52,6 +58,7 @@ import eu.raxsix.popularmovies.adapters.TrailerCursorAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
 import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
+import eu.raxsix.popularmovies.helpers.Helper;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 
 import static eu.raxsix.popularmovies.extras.Constants.COL_DATE;
@@ -77,10 +84,10 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
 
     public static final String DETAIL_URI = "URI";
-
     private static final String TAG = MovieDetailFragment.class.getSimpleName();
 
     private Uri mUri;
+    private String mShareUrl;
     private int mLocalMovieId;
     private int mRemoteMovieId;
     private int mFavorite;
@@ -97,9 +104,10 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     private RequestQueue mRequestQueue;
     private JsonObjectRequest mTrailerRequest;
     private JsonObjectRequest mReviewRequest;
+    private ShareActionProvider mShareActionProvider;
 
     public MovieDetailFragment() {
-        // Required empty public constructor
+        setHasOptionsMenu(true);
     }
 
 
@@ -248,6 +256,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
             getTrailerInfo();
             getReviewInfo();
+            buildYoutubeShareUrl();
 
         }
     }
@@ -340,6 +349,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
                 MovieContract.TrailerEntry.COLUMN_MOVIE_KEY + " = ?",
                 new String[]{String.valueOf(mLocalMovieId)},
                 null);
+
 
         // Setup cursor adapter using cursor from last step
         TrailerCursorAdapter trailerAdapter = new TrailerCursorAdapter(getActivity(), setTrailerCursor, 0);
@@ -561,6 +571,55 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
 
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.detailfragment, menu);
+
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+        // If onLoadFinished happens before this, we can go ahead and set the share intent now.
+        if (mShareUrl != null) {
+            mShareActionProvider.setShareIntent(createShareForecastIntent());
+        }
+    }
+
+    private Intent createShareForecastIntent() {
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, mShareUrl);
+
+        return shareIntent;
+    }
+
+    private void buildYoutubeShareUrl(){
+
+        String[] columns = {MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY};
+
+        Cursor trailerCursor = getActivity().getContentResolver().query(
+                MovieContract.TrailerEntry.CONTENT_URI,
+                columns,
+                MovieContract.TrailerEntry.COLUMN_MOVIE_KEY + " = ?",
+                new String[]{String.valueOf(mLocalMovieId)},
+                null);
+
+        Helper.getCursorInfo(trailerCursor);
+
+        trailerCursor.moveToFirst();
+        String youtubeKey = trailerCursor.getString(0);
+
+        mShareUrl = "http://www.youtube.com/watch?v=" + youtubeKey;
+
+      trailerCursor.close();
+    }
+
 
     private void watchYoutubeVideo(String id) {
 
