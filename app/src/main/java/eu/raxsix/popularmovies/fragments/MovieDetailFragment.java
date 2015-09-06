@@ -46,6 +46,7 @@ import eu.raxsix.popularmovies.adapters.TrailerCursorAdapter;
 import eu.raxsix.popularmovies.api_key.ApiKey;
 import eu.raxsix.popularmovies.database.MovieContract;
 import eu.raxsix.popularmovies.extras.Constants;
+import eu.raxsix.popularmovies.helpers.Helper;
 import eu.raxsix.popularmovies.network.VolleySingleton;
 
 import static eu.raxsix.popularmovies.extras.Constants.TAG_REQUEST_REVIEW;
@@ -66,6 +67,8 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     public static final String DETAIL_URI = "URI";
     private static final String TAG = MovieDetailFragment.class.getSimpleName();
 
+    public static final int COL_MOVIE_ID = 0;
+    public static final int COL_REMOTE_MOVIE_ID = 1;
     public static final int COL_TITLE = 2;
     public static final int COL_IMAGE_PATH = 3;
     public static final int COL_DATE = 4;
@@ -154,9 +157,6 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
         getLoaderManager().initLoader(0, null, this);
 
-        // getTrailerInfo();
-
-        // getReviewInfo();
     }
 
 
@@ -184,6 +184,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
 
         Log.d(TAG, "MovieDetailFragment - onLoadFinished");
 
@@ -282,6 +283,13 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
             // Set the rating
             mRating.setText(Double.toString(rating) + " / 10");
 
+            mRemoteMovieId = data.getInt(COL_REMOTE_MOVIE_ID);
+            Log.d(TAG, mRemoteMovieId + " THIS IS REMOTE MOVIE ID");
+
+            mLocalMovieId = data.getInt(COL_MOVIE_ID);
+
+            getTrailerInfo();
+            getReviewInfo();
 
         }
     }
@@ -309,6 +317,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
                 parseJsonResponse(response, mTrailerRequest.getTag().toString());
 
                 setTrailerInfo();
+
                 mListProgressBar.setVisibility(View.INVISIBLE);
             }
 
@@ -326,14 +335,54 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
     }
 
+
+    private void addTrailerToDatabase(String youtubeKey, String name, String site, int size, String type) {
+
+        Log.d(TAG, "addTrailerToDatabase was called");
+
+        Cursor trailerCursor = getActivity().getContentResolver().query(
+                MovieContract.TrailerEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(youtubeKey)).build(),
+                null,
+                null,
+                null,
+                null);
+
+        Helper.getCursorInfo(trailerCursor);
+
+        if (!trailerCursor.moveToFirst()) {
+
+
+            ContentValues trailerValues = new ContentValues();
+
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, mLocalMovieId);
+            Log.d(TAG, mLocalMovieId + "");
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY, youtubeKey);
+            Log.d(TAG, youtubeKey + "");
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_SIZE, size);
+            Log.d(TAG, size + "");
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_TYPE, type);
+            Log.d(TAG, type + "");
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_NAME, name);
+            Log.d(TAG, name + "");
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_SITE, site);
+            Log.d(TAG, site + "");
+
+            getActivity().getContentResolver().insert(
+                    MovieContract.TrailerEntry.CONTENT_URI,
+                    trailerValues);
+        }
+        trailerCursor.close();
+    }
+
     private void setTrailerInfo() {
 
         Log.d(TAG, "setTrailerInfo was called");
+        String[] columns ={MovieContract.TrailerEntry._ID, MovieContract.TrailerEntry.COLUMN_NAME};
 
         @SuppressLint("Recycle")
         Cursor setTrailerCursor = getActivity().getContentResolver().query(
                 MovieContract.TrailerEntry.CONTENT_URI,
-                null,
+                columns,
                 MovieContract.TrailerEntry.COLUMN_MOVIE_KEY + " = ?",
                 new String[]{String.valueOf(mLocalMovieId)},
                 null);
@@ -538,40 +587,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
     }
 
 
-    private void addTrailerToDatabase(String youtubeKey, String name, String site, int size, String type) {
 
-        Log.d(TAG, "addTrailerToDatabase was called");
-
-        Cursor trailerCursor = getActivity().getContentResolver().query(
-                MovieContract.TrailerEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(youtubeKey)).build(),
-                null,
-                null,
-                null,
-                null);
-
-        if (!trailerCursor.moveToFirst()) {
-
-            ContentValues trailerValues = new ContentValues();
-
-            trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, mLocalMovieId);
-            Log.d(TAG, mLocalMovieId + "");
-            trailerValues.put(MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY, youtubeKey);
-            Log.d(TAG, youtubeKey + "");
-            trailerValues.put(MovieContract.TrailerEntry.COLUMN_SIZE, size);
-            Log.d(TAG, size + "");
-            trailerValues.put(MovieContract.TrailerEntry.COLUMN_TYPE, type);
-            Log.d(TAG, type + "");
-            trailerValues.put(MovieContract.TrailerEntry.COLUMN_NAME, name);
-            Log.d(TAG, name + "");
-            trailerValues.put(MovieContract.TrailerEntry.COLUMN_SITE, site);
-            Log.d(TAG, site + "");
-
-            getActivity().getContentResolver().insert(
-                    MovieContract.TrailerEntry.CONTENT_URI,
-                    trailerValues);
-        }
-        trailerCursor.close();
-    }
 
 
     @Override

@@ -25,6 +25,7 @@ public class MovieProvider extends ContentProvider {
     static final int MOVIE_WITH_TRAILER = 101;
     static final int MOVIE_WITH_REVIEW = 102;
     static final int TRAILER = 300;
+    static final int TRAILER_BY_ID = 301;
     static final int REVIEW = 400;
 
     private static UriMatcher buildUriMatcher() {
@@ -36,8 +37,9 @@ public class MovieProvider extends ContentProvider {
         matcher.addURI(authority, MovieContract.PATH_MOVIE, MOVIE);
         matcher.addURI(authority, MovieContract.PATH_MOVIE + "/#", MOVIE_BY_ID);
         matcher.addURI(authority, MovieContract.PATH_TRAILER, TRAILER);
+        matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", TRAILER_BY_ID);
         matcher.addURI(authority, MovieContract.PATH_REVIEW, REVIEW);
-        matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", MOVIE_WITH_TRAILER);
+       // matcher.addURI(authority, MovieContract.PATH_TRAILER + "/*", MOVIE_WITH_TRAILER);
         matcher.addURI(authority, MovieContract.PATH_TRAILER + "/#", MOVIE_WITH_REVIEW);
 
         return matcher;
@@ -126,6 +128,12 @@ public class MovieProvider extends ContentProvider {
                 break;
             }
 
+            case TRAILER_BY_ID: {
+                Log.i(TAG, "query TRAILER_BY_ID");
+                retCursor = getTrailerById(uri, projection, sortOrder);
+                break;
+            }
+
             case REVIEW: {
 
                 Log.i(TAG, "query REVIEW");
@@ -190,6 +198,22 @@ public class MovieProvider extends ContentProvider {
                 MovieContract.MovieEntry.TABLE_NAME,
                 projection,
                 sMovieIdSelection,
+                new String[]{id},
+                null,
+                null,
+                sortOrder
+        );
+    }
+    private Cursor getTrailerById(
+            Uri uri, String[] projection, String sortOrder) {
+
+        String trailerIdSelection = MovieContract.TrailerEntry.COLUMN_YOUTUBE_KEY + " = ?";
+        String id = MovieContract.getIdFromUri(uri);
+
+        return mOpenHelper.getReadableDatabase().query(
+                MovieContract.TrailerEntry.TABLE_NAME,
+                projection,
+                trailerIdSelection,
                 new String[]{id},
                 null,
                 null,

@@ -30,13 +30,13 @@ public class TrailerCursorAdapter extends CursorAdapter {
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
 
-        Log.d(TAG, "TrailerCursorAdapter - newView was called");
+       // Log.d(TAG, "TrailerCursorAdapter - newView was called");
         return LayoutInflater.from(mContext).inflate(R.layout.item_trailer, parent, false);
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        Log.d(TAG, "TrailerCursorAdapter - bindView was called");
+       // Log.d(TAG, "TrailerCursorAdapter - bindView was called");
         TextView trailerName = (TextView) view.findViewById(R.id.trailerListTextView);
 
         String data = cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.TrailerEntry.COLUMN_NAME));
