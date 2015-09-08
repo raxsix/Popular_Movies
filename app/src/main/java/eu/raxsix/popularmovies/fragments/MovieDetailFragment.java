@@ -651,8 +651,11 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
         } else if (error instanceof ServerError) {
 
+            Toast.makeText(getActivity(), R.string.server_error, Toast.LENGTH_LONG).show();
+
         } else if (error instanceof NetworkError) {
 
+            Toast.makeText(getActivity(), R.string.network_error, Toast.LENGTH_LONG).show();
         } else if (error instanceof ParseError) {
 
         }

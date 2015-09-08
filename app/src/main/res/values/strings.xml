@@ -15,4 +15,6 @@
     <string name="favorites_title">Favorite Movies</string>
     <string name="trailers_title">Trailers:</string>
     <string name="review_title">Reviews</string>
+    <string name="network_error">Network Error</string>
+    <string name="server_error">Server error</string>
 </resources>

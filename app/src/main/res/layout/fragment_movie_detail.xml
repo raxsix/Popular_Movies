@@ -77,7 +77,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/posterImageView"
             android:padding="10dp"
-            android:text="asdfasdfasdfasdfhlkjasdfhas"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
