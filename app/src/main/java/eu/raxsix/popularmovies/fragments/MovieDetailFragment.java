@@ -46,7 +46,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -362,7 +361,7 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
         // If onCreateOptionsMenu has already happened, we need to update the share intent now.
         if (mShareActionProvider != null) {
-            mShareActionProvider.setShareIntent(createShareForecastIntent());
+            mShareActionProvider.setShareIntent(createShareMovieIntent());
         }
 
     }
@@ -592,11 +591,11 @@ public class MovieDetailFragment extends Fragment implements AdapterView.OnItemC
 
         // If onLoadFinished happens before this, we can go ahead and set the share intent now.
         if (mShareUrl != null) {
-            mShareActionProvider.setShareIntent(createShareForecastIntent());
+            mShareActionProvider.setShareIntent(createShareMovieIntent());
         }
     }
 
-    private Intent createShareForecastIntent() {
+    private Intent createShareMovieIntent() {
 
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
